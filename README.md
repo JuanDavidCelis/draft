@@ -1,6 +1,6 @@
 # VOIDKINGS DRAFT LAB
 
-Aplicación privada de draft competitivo para **VoidKings · VK SinADC**. Versión **0.5.0**.
+Aplicación privada de draft competitivo para **VoidKings · VK SinADC**. Versión **0.6.0**.
 
 La identidad visual y los textos de la aplicación corresponden a **VoidKings** y al equipo **VK SinADC**. Esta actualización conserva los identificadores internos del Blob y de la sesión de la versión anterior para no perder los drafts, configuraciones ni la sesión ya existentes. Esos identificadores son detalles técnicos de compatibilidad y no aparecen en la interfaz.
 
@@ -16,9 +16,13 @@ La aplicación se ejecuta en Vercel. No utiliza Supabase, Firebase, servicios ex
 
 El estado persistido incluye picks, bans, orden de slots, lado, formato, Champion Pool y composiciones personalizadas. El documento se limita a 2 MB.
 
-## Funciones de la versión 0.5.0
+## Funciones de la versión 0.6.0
 
 - First Pick / Last Pick y formato BO1, BO3 o BO5.
+- Gestión de series Fearless Draft: BO1 crea Game 1; BO3 crea Game 1–3; BO5 crea Game 1–5.
+- Al finalizar un game con los diez picks registrados, los cinco campeones de ambos equipos quedan globalmente bloqueados para los games siguientes de esa serie. Los bans no se arrastran entre games.
+- Los games avanzan secuencialmente; un game solo se puede finalizar tras registrar los cinco picks de cada equipo. Los games completados quedan en modo lectura.
+- El botón **Nueva serie** elimina el bloqueo temporal y crea una serie limpia, conservando Champion Pool y biblioteca. Cambiar BO1/BO3/BO5 con progreso pide confirmación y también reinicia la serie.
 - Bans de ambos equipos.
 - Orden competitivo B1 → R1 → R2 → B2 → B3 → R3 → R4 → B4 → B5 → R5.
 - Asignación flexible de posición a cada turno, incluyendo flex picks como Malphite u Ornn Support.
@@ -27,7 +31,8 @@ El estado persistido incluye picks, bans, orden de slots, lado, formato, Champio
 - Último pick diferenciado correctamente: R5 es el counterpick real del lado rojo; B5 cierra la composición antes de que el rival tenga su R5.
 - Cada línea sugiere tres candidatos a partir del CORE + ALT 1 + ALT 2 configurados, descartando campeones baneados o ya seleccionados.
 - El motor puntúa prioridad de Champion Pool, equilibrio de daño, frontline, engage, CC, peel, sinergias conocidas, counters por línea, perfil de la composición rival y ajustes conocidos del parche 7.3d.
-- Panel de scouting de matchup: compara arquetipos de ambos equipos, siete atributos estratégicos, matchups directos y recomendaciones de ejecución.
+- Panel de scouting de matchup: compara arquetipos de ambos equipos, siete atributos estratégicos, matchups directos, prioridad potencial por línea y recomendaciones de ejecución.
+- Índice comparativo de draft (0–100 repartido entre ambos equipos) solo cuando ambas composiciones están completas. Es una heurística de herramientas/sinergias/counters, no representa win rate ni probabilidad real de victoria.
 - Plan de partida por fases: early game, preparación de objetivos y teamfights.
 - Retratos de campeones, fallbacks visuales si no carga una imagen y animaciones de entrada/transición respetando `prefers-reduced-motion`.
 - Tres propuestas de composición y biblioteca de plantillas editables.
@@ -49,9 +54,11 @@ El panel **Pick Coach** calcula el siguiente turno de VK SinADC usando el orden 
 
 Las sugerencias se ordenan por puntuación heurística: no son porcentajes de victoria, predicciones de resultado ni una tier list oficial. El motor usa los perfiles editables del catálogo, relaciones de sinergia/counter mantenidas en `assets/js/catalog.js`, picks enemigos y el contexto de ajustes del parche indicado en el código. Los perfiles con etiquetas estratégicas pendientes aportan métricas neutrales hasta que se completen.
 
-El panel **Matchup Analysis** compara las herramientas de los dos equipos y propone ajustes por fase. Su lectura se marca como provisional hasta que se registren los cinco campeones rivales. Las sugerencias sirven como apoyo al coach y deben validarse con scrims y el conocimiento de los jugadores.
+El panel **Matchup Analysis** compara las herramientas de los dos equipos y propone ajustes por fase. Su lectura se marca como parcial mientras falten selecciones. La prioridad por línea se estima con counters registrados y perfiles del catálogo, y no garantiza prioridad de oleada. El índice de draft aparece únicamente cuando ambos equipos tienen cinco picks; es una distribución heurística de ventaja composicional, nunca un porcentaje real de win rate ni una predicción del resultado. Las sugerencias sirven como apoyo al coach y deben validarse con scrims y el conocimiento de los jugadores.
 
 Los retratos se cargan desde Riot Data Dragon `16.21.1`. Por tanto, la aplicación, la API, el estado privado y las recomendaciones se ejecutan/alojan en Vercel; únicamente las imágenes de campeón se solicitan a la CDN oficial de Riot. Si una imagen no existe o la CDN no responde, se muestran iniciales como alternativa.
+
+Los informes **Lectura del coach**, **Scouting automático**, **Plan de partida** y **Lectura y ajustes** aparecen debajo del tablero de draft, con tipografía ampliada y comparativa de ambos equipos.
 
 La capa visual incorpora animaciones de paneles, selección, sugerencias y modales. Se desactivan/reducen mediante `prefers-reduced-motion` cuando el sistema operativo del usuario solicita movimiento reducido.
 
@@ -138,6 +145,10 @@ Para desarrollo local con Vercel CLI, vincula primero el proyecto con `vercel li
 
 El cambio de identidad conserva la ruta técnica del documento privado de Blob y la cookie de sesión para no romper la conexión ya configurada. El nombre de la aplicación, la interfaz, el manifiesto PWA, los iconos y los archivos de respaldo nuevos ya usan VoidKings · VK SinADC. La caché local principal ahora usa el prefijo VoidKings y mantiene las claves anteriores únicamente como rutas de migración. Por ello, el despliegue de esta versión conserva los drafts, el Champion Pool, las plantillas personalizadas y la sesión existente. Los respaldos JSON exportados con el nombre anterior también se pueden importar; los nuevos respaldos se identifican como VoidKings · VK SinADC.
 
+## Pruebas
+
+Ejecuta `npm test` con Node.js 20 o superior. La suite cubre catálogo, picks, counters, análisis, flujo BO1/BO3/BO5, bloqueos Fearless entre ambos equipos, reinicio de serie, bans por game, autenticación y persistencia en Vercel Blob.
+
 ## Documentación oficial de Vercel
 
 - [Vercel Blob — Private Storage](https://vercel.com/docs/vercel-blob/private-storage)
@@ -160,6 +171,10 @@ voidkings-draft-lab/
 │   ├── css/styles.css
 │   ├── icons/
 │   └── js/
+│       ├── app.js
+│       ├── catalog.js
+│       ├── draft-intel.js
+│       └── series.js
 ├── tests/
 ├── index.html
 ├── manifest.webmanifest

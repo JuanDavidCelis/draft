@@ -74,6 +74,15 @@
           <div class="draft-count"><strong id="pick-count">0/10</strong><small>PICKS REGISTRADOS</small></div>
         </div>
 
+        <section class="panel series-panel" aria-label="Gestión de serie Fearless">
+          <div class="series-head">
+            <div class="series-title"><span class="section-kicker">TORNEO · FEARLESS DRAFT</span><h2 id="series-title">BO3 · GAME 1 DE 3</h2><p>Los campeones elegidos por cualquiera de los dos equipos quedarán bloqueados para los siguientes games de esta serie.</p></div>
+            <div class="series-actions"><span class="series-lock-count" id="series-lock-count">0 CAMPEONES BLOQUEADOS</span><button id="finish-game-btn" class="button button-primary" type="button">Finalizar Game 1</button><button id="next-game-btn" class="button button-ghost" type="button" hidden>Ir a Game 2 →</button><button id="new-series-btn" class="button button-ghost" type="button">＋ Nueva serie</button></div>
+          </div>
+          <div id="series-games" class="series-games" role="tablist" aria-label="Games de la serie"></div>
+          <div id="series-locks" class="series-locks" aria-live="polite"></div>
+        </section>
+
         <div class="draft-layout">
           <div class="draft-main-column">
             <section class="panel bans-panel">
@@ -102,21 +111,32 @@
               <div id="build-recommendations" class="build-grid"></div>
             </section>
           </div>
+        </div>
 
-          <aside class="draft-side-column">
-            <section class="panel analysis-panel">
-              <div class="section-heading compact"><div><span class="section-kicker">LECTURA DEL COACH</span><h2>Team analyzer</h2></div><span class="analysis-orb">✦</span></div>
+        <section class="coach-reports" aria-label="Informes competitivos del coach">
+          <div class="reports-heading"><div><span class="section-kicker">INTELLIGENCE CENTER · VOIDKINGS</span><h2>Informes del <em>coach.</em></h2><p>Comparativa completa de composiciones, prioridad por línea y plan de ejecución.</p></div></div>
+          <div class="reports-grid">
+            <section class="panel analysis-panel report-card">
+              <div class="section-heading"><div><span class="section-kicker">LECTURA DEL COACH</span><h2>Team analyzer</h2></div><span class="analysis-orb">✦</span></div>
               <div id="analysis-content"></div>
+              <div class="wincon-inline"><span class="section-kicker">CONDICIÓN DE VICTORIA</span><h3 id="wincon-title">Esperando selecciones</h3><p id="wincon-copy">Registra tus campeones para identificar la identidad y las necesidades de tu composición.</p></div>
             </section>
-            <section class="panel matchup-panel">
-              <div class="section-heading compact"><div><span class="section-kicker">SCOUTING AUTOMÁTICO</span><h2>Matchup report</h2></div><span class="analysis-orb">VS</span></div>
+            <section class="panel matchup-panel report-card report-wide">
+              <div class="section-heading"><div><span class="section-kicker">SCOUTING AUTOMÁTICO</span><h2>Comparativa de composiciones</h2></div><span class="analysis-orb">VS</span></div>
               <div id="matchup-analysis"></div>
             </section>
-            <section class="panel wincon-panel"><span class="section-kicker">CONDICIÓN DE VICTORIA</span><h3 id="wincon-title">Esperando selecciones</h3><p id="wincon-copy">Registra tus campeones para identificar la identidad y las necesidades de tu composición.</p></section>
-            <section class="panel quick-actions"><div class="section-heading compact"><div><span class="section-kicker">UTILIDADES</span><h2>Draft tools</h2></div></div><button class="tool-button" id="fill-template-btn"><span>▣</span><div><strong>Cargar composición guardada</strong><small>Aplicar una plantilla al lado propio</small></div><b>→</b></button><button class="tool-button" id="save-template-btn"><span>＋</span><div><strong>Guardar mi composición</strong><small>Guardar la plantilla en Vercel</small></div><b>→</b></button><button class="tool-button" id="clear-own-btn"><span>⌫</span><div><strong>Limpiar mis picks</strong><small>Mantener los bans y el rival</small></div><b>→</b></button></section>
-            <div class="disclaimer">Las puntuaciones son heurísticas iniciales del equipo, no estadísticas oficiales ni predicciones de victoria. Ajusta prioridades después de scrims.</div>
-          </aside>
-        </div>
+            <section class="panel report-card">
+              <div class="section-heading"><div><span class="section-kicker">PLAN DE PARTIDA</span><h2>Game plan</h2></div><span class="analysis-orb">⌁</span></div>
+              <div id="game-plan-analysis"></div>
+            </section>
+            <section class="panel report-card">
+              <div class="section-heading"><div><span class="section-kicker">LECTURA Y AJUSTES</span><h2>Coach adjustments</h2></div><span class="analysis-orb">✧</span></div>
+              <div id="adjustments-analysis"></div>
+            </section>
+          </div>
+          <section class="panel quick-actions report-tools"><div class="section-heading compact"><div><span class="section-kicker">UTILIDADES</span><h2>Draft tools</h2></div></div><div class="tools-row"><button class="tool-button" id="fill-template-btn"><span>▣</span><div><strong>Cargar composición guardada</strong><small>Aplicar una plantilla al lado propio</small></div><b>→</b></button><button class="tool-button" id="save-template-btn"><span>＋</span><div><strong>Guardar mi composición</strong><small>Guardar la plantilla en Vercel</small></div><b>→</b></button><button class="tool-button" id="clear-own-btn"><span>⌫</span><div><strong>Limpiar mis picks</strong><small>Mantener los bans y el rival</small></div><b>→</b></button></div></section>
+          <div class="disclaimer report-disclaimer">El balance y la prioridad por línea son estimaciones heurísticas de draft, no win rate histórico ni predicción garantizada. Valida las lecturas con scrims y conocimiento de los jugadores.</div>
+        </section>
       </section>
 
       <section id="view-pool" class="view">

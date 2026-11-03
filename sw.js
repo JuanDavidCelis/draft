@@ -1,4 +1,4 @@
-const CACHE_NAME = 'voidkings-draft-lab-v0-5-0';
+const CACHE_NAME = 'voidkings-draft-lab-v0-6-0';
 const LEGACY_CACHE_PREFIXES = ['vhaeldron-draft-lab-', 'voidkings-draft-lab-'];
 const APP_SHELL = [
   './',
@@ -8,6 +8,7 @@ const APP_SHELL = [
   './assets/js/app.js',
   './assets/js/catalog.js',
   './assets/js/draft-intel.js',
+  './assets/js/series.js',
   './assets/icons/icon-192.png',
   './assets/icons/icon-512.png',
   './assets/icons/voidkings-logo.svg'

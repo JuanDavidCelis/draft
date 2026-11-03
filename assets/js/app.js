@@ -1,5 +1,6 @@
 import { CHAMPIONS, ROLES, ROLE_POOLS, TEMPLATES, SYNERGIES, COUNTERS } from './catalog.js';
 import { getNextSidePick, getLastSidePick, compareCompositions, scoreCandidateForDraft } from './draft-intel.js';
+import { createSeriesState, normalizeSeriesState, getSeriesLockedChampions, getSeriesDisplayLocks, canAccessSeriesGame, canCompleteGame, countGamePicks } from './series.js';
 
 const STORAGE_KEY = 'voidkings-draft-lab-cache-v3';
 const LEGACY_STORAGE_KEYS = ['vhaeldron-draft-lab-cache-v2', 'vhaeldron-draft-lab-v1'];
@@ -58,8 +59,102 @@ function bindChampionImages(root = document) {
 }
 
 
-function initialState() {
+function emptyCurrentGame(side = 'blue') {
   return {
+    side: side === 'red' ? 'red' : 'blue',
+    picks: { blue: EMPTY_TEAM(), red: EMPTY_TEAM() },
+    bans: { blue: Array(5).fill(null), red: Array(5).fill(null) },
+    slotRoles: { blue: [...DEFAULT_SLOT_ROLES], red: [...DEFAULT_SLOT_ROLES] },
+    completed: false,
+    completedAt: null,
+  };
+}
+
+function cloneCurrentGame() {
+  const active = state.series?.games?.[state.series.activeGame - 1];
+  return {
+    side: state.side,
+    picks: { blue: { ...state.picks.blue }, red: { ...state.picks.red } },
+    bans: { blue: [...state.bans.blue], red: [...state.bans.red] },
+    slotRoles: { blue: [...state.slotRoles.blue], red: [...state.slotRoles.red] },
+    completed: Boolean(active?.completed),
+    completedAt: active?.completedAt || null,
+  };
+}
+
+function sanitizeSeries(raw, format, side, fallbackGame) {
+  const roleIds = ROLES.map(role => role.id);
+  const series = normalizeSeriesState(raw, format, roleIds, side, fallbackGame);
+  const fearlessUsed = new Set();
+  let previousGameCompleted = true;
+  for (let index = 0; index < series.games.length; index += 1) {
+    const game = series.games[index];
+    if (!previousGameCompleted) {
+      series.games[index] = createEmptySeriesGame(side);
+      continue;
+    }
+    const picked = new Set();
+    for (const team of ['blue', 'red']) {
+      for (const role of roleIds) {
+        const id = game.picks?.[team]?.[role];
+        if (!id || !championById.has(id) || picked.has(id) || fearlessUsed.has(id)) game.picks[team][role] = null;
+        else picked.add(id);
+      }
+    }
+    const banned = new Set();
+    for (const team of ['blue', 'red']) {
+      game.bans[team] = game.bans[team].map(id => {
+        if (!id || !championById.has(id) || picked.has(id) || banned.has(id) || fearlessUsed.has(id)) return null;
+        banned.add(id);
+        return id;
+      });
+    }
+    if (game.completed && !canCompleteGame(game.picks, roleIds)) {
+      game.completed = false;
+      game.completedAt = null;
+    }
+    if (game.completed) {
+      for (const id of picked) fearlessUsed.add(id);
+    } else {
+      previousGameCompleted = false;
+    }
+  }
+  let accessibleGame = 1;
+  for (let index = 1; index < series.games.length; index += 1) {
+    if (!series.games[index - 1].completed) break;
+    accessibleGame = index + 1;
+  }
+  series.activeGame = Math.min(series.activeGame, accessibleGame);
+  return series;
+}
+
+function createEmptySeriesGame(side = 'blue') {
+  return {
+    side: side === 'red' ? 'red' : 'blue',
+    picks: { blue: EMPTY_TEAM(), red: EMPTY_TEAM() },
+    bans: { blue: Array(5).fill(null), red: Array(5).fill(null) },
+    slotRoles: { blue: [...DEFAULT_SLOT_ROLES], red: [...DEFAULT_SLOT_ROLES] },
+    completed: false,
+    completedAt: null,
+  };
+}
+
+function loadGameIntoState(game) {
+  state.side = game.side === 'red' ? 'red' : 'blue';
+  state.picks = { blue: { ...EMPTY_TEAM(), ...(game.picks?.blue || {}) }, red: { ...EMPTY_TEAM(), ...(game.picks?.red || {}) } };
+  state.bans = {
+    blue: Array.from({ length: 5 }, (_, index) => game.bans?.blue?.[index] || null),
+    red: Array.from({ length: 5 }, (_, index) => game.bans?.red?.[index] || null),
+  };
+  state.slotRoles = { blue: [...DEFAULT_SLOT_ROLES], red: [...DEFAULT_SLOT_ROLES] };
+  for (const team of ['blue', 'red']) {
+    const roles = game.slotRoles?.[team];
+    if (Array.isArray(roles) && roles.length === ROLES.length && roles.every(role => ROLES.some(item => item.id === role)) && new Set(roles).size === ROLES.length) state.slotRoles[team] = [...roles];
+  }
+}
+
+function initialState() {
+  const state = {
     side: 'blue', format: 'BO3',
     picks: { blue: EMPTY_TEAM(), red: EMPTY_TEAM() },
     bans: { blue: Array(5).fill(null), red: Array(5).fill(null) },
@@ -67,6 +162,8 @@ function initialState() {
     pool: cloneDefaultPool(),
     customTemplates: [],
   };
+  state.series = createSeriesState(state.format, ROLES.map(role => role.id), state.side, emptyCurrentGame());
+  return state;
 }
 
 function loadState() {
@@ -74,13 +171,11 @@ function loadState() {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
     if (!saved) return initialState();
     const base = initialState();
-    for (const team of ['blue', 'red']) {
-      base.picks[team] = { ...base.picks[team], ...(saved.picks?.[team] || {}) };
-      base.bans[team] = Array.from({ length: 5 }, (_, i) => saved.bans?.[team]?.[i] || null);
-    }
     base.side = saved.side === 'red' ? 'red' : 'blue';
     base.format = ['BO1', 'BO3', 'BO5'].includes(saved.format) ? saved.format : 'BO3';
     for (const team of ['blue', 'red']) {
+      base.picks[team] = { ...base.picks[team], ...(saved.picks?.[team] || {}) };
+      base.bans[team] = Array.from({ length: 5 }, (_, i) => saved.bans?.[team]?.[i] || null);
       const roles = saved.slotRoles?.[team];
       if (Array.isArray(roles) && roles.length === 5 && roles.every(role => ROLES.some(item => item.id === role)) && new Set(roles).size === 5) base.slotRoles[team] = [...roles];
     }
@@ -94,10 +189,77 @@ function loadState() {
       }
     }
     base.customTemplates = Array.isArray(saved.customTemplates) ? saved.customTemplates.filter(item => item && typeof item.id === 'string' && typeof item.name === 'string' && item.picks && ROLES.every(role => championById.has(item.picks[role.id]))).slice(0, 100) : [];
+
+    const legacyGame = {
+      side: base.side,
+      picks: { blue: { ...base.picks.blue }, red: { ...base.picks.red } },
+      bans: { blue: [...base.bans.blue], red: [...base.bans.red] },
+      slotRoles: { blue: [...base.slotRoles.blue], red: [...base.slotRoles.red] },
+      completed: false,
+      completedAt: null,
+    };
+    base.series = sanitizeSeries(saved.series, base.format, base.side, legacyGame);
+    if (saved.series?.games?.length) {
+      const active = base.series.games[base.series.activeGame - 1];
+      base.side = active.side;
+      base.picks = { blue: { ...active.picks.blue }, red: { ...active.picks.red } };
+      base.bans = { blue: [...active.bans.blue], red: [...active.bans.red] };
+      base.slotRoles = { blue: [...active.slotRoles.blue], red: [...active.slotRoles.red] };
+    } else {
+      base.series.games[0] = legacyGame;
+    }
     return base;
   } catch {
     return initialState();
   }
+}
+
+function syncActiveGameToSeries() {
+  if (!state.series?.games?.length) return;
+  const index = state.series.activeGame - 1;
+  const existing = state.series.games[index];
+  if (existing?.completed) return;
+  state.series.games[index] = cloneCurrentGame();
+}
+
+function currentGameIsCompleted() {
+  return Boolean(state.series?.games?.[state.series.activeGame - 1]?.completed);
+}
+
+function seriesLockedMap() {
+  return getSeriesLockedChampions(state.series, state.series?.activeGame || 1);
+}
+
+function startNewSeries(format = state.format) {
+  state.format = format;
+  state.series = createSeriesState(format, ROLES.map(role => role.id), state.side, emptyCurrentGame(state.side));
+  state.picks = { blue: EMPTY_TEAM(), red: EMPTY_TEAM() };
+  state.bans = { blue: Array(5).fill(null), red: Array(5).fill(null) };
+  state.slotRoles = { blue: [...DEFAULT_SLOT_ROLES], red: [...DEFAULT_SLOT_ROLES] };
+}
+
+function switchSeriesGame(gameNumber) {
+  if (!canAccessSeriesGame(state.series, gameNumber)) return notify('Finaliza el game anterior para desbloquear esta partida.');
+  syncActiveGameToSeries();
+  state.series.activeGame = gameNumber;
+  loadGameIntoState(state.series.games[gameNumber - 1]);
+  renderDraft();
+  notify(`Game ${gameNumber} cargado. Se aplican los bloqueos Fearless de los games anteriores.`);
+}
+
+function finishCurrentGame() {
+  const current = state.series.games[state.series.activeGame - 1];
+  if (current?.completed) return;
+  if (!canCompleteGame(state.picks, ROLES.map(role => role.id))) {
+    return notify('Para finalizar el game debes registrar los cinco picks de ambos equipos.');
+  }
+  syncActiveGameToSeries();
+  state.series.games[state.series.activeGame - 1].completed = true;
+  state.series.games[state.series.activeGame - 1].completedAt = new Date().toISOString();
+  renderDraft();
+  const next = state.series.activeGame + 1;
+  if (next <= state.series.games.length) notify(`Game ${state.series.activeGame} finalizado. ${countGamePicks(state.picks, ROLES.map(role => role.id))} picks bloqueados para los siguientes games.`);
+  else notify('Serie finalizada. Inicia una nueva serie para limpiar los bloqueos Fearless.');
 }
 
 let state = loadState();
@@ -122,6 +284,7 @@ function setCloudStatus(label, tone = 'ok') {
 }
 
 function saveState() {
+  syncActiveGameToSeries();
   const snapshot = JSON.stringify(state);
   try {
     localStorage.setItem(STORAGE_KEY, snapshot);
@@ -316,6 +479,31 @@ function setView(view) {
   if (view === 'library') renderTemplates();
 }
 
+function renderSeriesControls() {
+  const gameNumber = state.series.activeGame;
+  const gameCount = state.series.games.length;
+  const current = state.series.games[gameNumber - 1];
+  const displayLocks = getSeriesDisplayLocks(state.series, gameNumber);
+  $('#series-title').textContent = `${state.format} · GAME ${gameNumber} DE ${gameCount}`;
+  $('#series-lock-count').textContent = `${displayLocks.size} CAMPEONES BLOQUEADOS`;
+  $('#series-games').innerHTML = state.series.games.map((game, index) => {
+    const number = index + 1;
+    const accessible = canAccessSeriesGame(state.series, number);
+    const status = game.completed ? 'COMPLETADO' : number === gameNumber ? 'EN CURSO' : accessible ? 'DISPONIBLE' : 'BLOQUEADO';
+    return `<button class="series-game-tab ${number === gameNumber ? 'active' : ''} ${game.completed ? 'completed' : ''}" type="button" role="tab" aria-selected="${number === gameNumber}" data-series-game="${number}" ${accessible ? '' : 'disabled'}><strong>GAME ${number}</strong><small>${status}</small></button>`;
+  }).join('');
+  const totalPicks = countGamePicks(state.picks, ROLES.map(role => role.id));
+  const finishButton = $('#finish-game-btn');
+  finishButton.disabled = current.completed || !canCompleteGame(state.picks, ROLES.map(role => role.id));
+  finishButton.textContent = current.completed ? '✓ GAME FINALIZADO' : `Finalizar Game ${gameNumber}`;
+  $('#next-game-btn').hidden = !(current.completed && gameNumber < gameCount);
+  $('#next-game-btn').textContent = `Ir a Game ${gameNumber + 1} →`;
+  $('#series-locks').innerHTML = displayLocks.size
+    ? `<div class="series-lock-copy"><strong>${current.completed ? 'FEARLESS · BLOQUEADOS PARA EL RESTO DE LA SERIE' : 'FEARLESS · PICKS BLOQUEADOS'}</strong><small>${current.completed ? `Los picks de games completados ya están registrados. Al avanzar, estos campeones no podrán seleccionarse por ninguno de los dos equipos.` : 'Estos campeones ya se usaron en games anteriores y no pueden elegirse por ninguno de los dos equipos durante el resto de la serie.'}</small></div><div class="series-lock-chips">${[...displayLocks.entries()].map(([id, game]) => `<span class="series-lock-chip">${championAvatar(getChampion(id),'tiny')}<b>${escapeHtml(championName(id))}</b><small>G${game}</small></span>`).join('')}</div>`
+    : `<div class="series-lock-copy"><strong>${current.completed ? 'GAME FINALIZADO' : 'SIN BLOQUEOS FEARLESS'}</strong><small>${current.completed ? 'Este game quedó registrado. Avanza al siguiente para continuar la serie.' : `Al finalizar el Game ${gameNumber}, sus ${totalPicks}/10 picks quedarán bloqueados para los siguientes games.`}</small></div>`;
+  bindChampionImages($('#series-locks'));
+}
+
 function renderSetup() {
   $$('#side-switch button').forEach(button => {
     button.classList.toggle('selected', button.dataset.side === state.side);
@@ -323,6 +511,7 @@ function renderSetup() {
   });
   $('#format-select').value = state.format;
   $('#pick-count').textContent = `${allPickIds().length}/10`;
+  renderSeriesControls();
 }
 
 function renderBans() {
@@ -335,7 +524,7 @@ function renderBans() {
     const container = $(`#${team}-bans`);
     container.innerHTML = state.bans[team].map((id, index) => {
       const champion = getChampion(id);
-      return `<button class="ban-slot ${champion ? 'filled' : ''}" data-ban-slot="${team}" data-index="${index}" title="${champion ? `Quitar veto: ${escapeHtml(champion.name)}` : 'Añadir veto'}">${champion ? `${championAvatar(champion,'ban')}<span class="ban-x">×</span>` : '＋'}</button>`;
+      return `<button class="ban-slot ${champion ? 'filled' : ''}" data-ban-slot="${team}" data-index="${index}" ${currentGameIsCompleted() ? 'disabled' : ''} title="${champion ? `Quitar veto: ${escapeHtml(champion.name)}` : 'Añadir veto'}">${champion ? `${championAvatar(champion,'ban')}<span class="ban-x">×</span>` : '＋'}</button>`;
     }).join('');
     bindChampionImages(container);
   }
@@ -354,8 +543,8 @@ function renderPicks() {
       const roleOptions = ROLES.map(role => `<option value="${role.id}" ${role.id === roleId ? 'selected' : ''}>${role.label}</option>`).join('');
       return `<div class="pick-entry">
         <span class="pick-order-badge">${turn}</span>
-        <select class="pick-role-select" data-slot-role="${team}" data-index="${index}" aria-label="Posición del pick ${turn}">${roleOptions}</select>
-        <button class="pick-slot ${champion ? 'filled' : ''}" data-pick-slot="${team}" data-role="${roleId}" data-slot-index="${index}" aria-label="Seleccionar campeón para ${roleLabel(roleId)}">
+        <select class="pick-role-select" data-slot-role="${team}" data-index="${index}" aria-label="Posición del pick ${turn}" ${currentGameIsCompleted() ? 'disabled' : ''}>${roleOptions}</select>
+        <button class="pick-slot ${champion ? 'filled' : ''}" data-pick-slot="${team}" data-role="${roleId}" data-slot-index="${index}" aria-label="Seleccionar campeón para ${roleLabel(roleId)}" ${currentGameIsCompleted() ? 'disabled' : ''}>
           ${champion ? championAvatar(champion, 'board') : '<span class="champion-avatar board empty-avatar">＋</span>'}
           <span class="pick-copy"><strong>${champion ? escapeHtml(champion.name) : '＋ Añadir campeón'}</strong><small>${champion ? `${escapeHtml(champion.tags.slice(0, 2).join(' · ') || roleLabel(roleId))}` : `PICK ${turn} · ${roleLabel(roleId)}`}</small></span>
           ${champion ? '<span class="remove-pick" title="Quitar selección">×</span>' : '<span class="pick-add-mark">＋</span>'}
@@ -368,6 +557,7 @@ function renderPicks() {
 }
 
 function setSlotRole(team, index, nextRole) {
+  if (currentGameIsCompleted()) return notify('Este game ya está finalizado y sus selecciones están bloqueadas.');
   const currentRole = state.slotRoles[team][index];
   if (!currentRole || currentRole === nextRole) return;
   const otherIndex = state.slotRoles[team].indexOf(nextRole);
@@ -456,8 +646,9 @@ function scoreCandidate(champion, role, currentIds, enemyIds, tier = 'SITUACIONA
 function getAvailableEntries(role, team = ownTeam(), currentIds = teamIds(team), enemyIds = teamIds(team === 'blue' ? 'red' : 'blue')) {
   const taken = new Set(allPickIds());
   const banned = new Set(allBanIds());
+  const seriesLocked = seriesLockedMap();
   return getRoleEntries(role)
-    .filter(entry => !taken.has(entry.champion) && !banned.has(entry.champion))
+    .filter(entry => !taken.has(entry.champion) && !banned.has(entry.champion) && !seriesLocked.has(entry.champion))
     .map(entry => ({ ...entry, champ: getChampion(entry.champion) }))
     .filter(entry => entry.champ)
     .map(entry => ({ ...entry, score: scoreCandidate(entry.champ, role, currentIds, enemyIds, entry.tier) }))
@@ -558,10 +749,14 @@ function renderPickCoach() {
 }
 
 function renderRoleRecommendations() {
+  const container = $('#role-recommendations');
+  if (currentGameIsCompleted()) {
+    container.innerHTML = '<div class="rec-empty">Game finalizado. Las selecciones de este game están bloqueadas; continúa al siguiente game o inicia una nueva serie.</div>';
+    return;
+  }
   const team = ownTeam();
   const current = teamIds(team);
   const enemy = teamIds(enemyTeam());
-  const container = $('#role-recommendations');
   container.innerHTML = ROLES.map(role => {
     if (state.picks[team][role.id]) {
       const champion = getChampion(state.picks[team][role.id]);
@@ -699,7 +894,7 @@ function renderAnalysis() {
   const evaluation = evaluateTeam(ids, enemyIds, 'balanced');
   const container = $('#analysis-content');
   if (!ids.length) {
-    container.innerHTML = '<div class="empty-state">Aún no hay picks de VK SinADC.<br>El análisis aparecerá aquí.</div>';
+    container.innerHTML = '<div class="empty-state">Aún no hay picks de VK SinADC.<br>El análisis aparecerá aquí cuando registres la composición propia.</div>';
     $('#wincon-title').textContent = 'Esperando selecciones';
     $('#wincon-copy').textContent = 'Registra tus campeones para identificar la identidad y las necesidades de tu composición.';
     return;
@@ -725,39 +920,46 @@ function renderAnalysis() {
 
 function renderMatchupAnalysis() {
   const container = $('#matchup-analysis');
+  const planContainer = $('#game-plan-analysis');
+  const adjustmentsContainer = $('#adjustments-analysis');
   const team = ownTeam();
   const enemy = enemyTeam();
   const ownIds = teamIds(team);
   const enemyIds = teamIds(enemy);
-  const report = compareCompositions(ownIds, enemyIds, championById, COUNTERS, state.picks[enemy]);
-  const styleTone = style => style.includes('Anti-tank') ? 'anti' : style.includes('Poke') ? 'poke' : style.includes('Dive') ? 'dive' : style.includes('Engage') ? 'engage' : 'balanced';
-  const direct = report.edges.map(edge => `<div class="matchup-edge">${championAvatar(getChampion(edge.counter),'tiny')}<strong>${escapeHtml(championName(edge.counter))}</strong><span>presiona a</span>${championAvatar(getChampion(edge.target),'tiny')}<strong>${escapeHtml(championName(edge.target))}</strong><b>+</b></div>`).join('');
-  const actions = report.actions.map(action => `<article class="matchup-action ${action.type}"><strong>${escapeHtml(action.title)}</strong><p>${escapeHtml(action.text)}</p></article>`).join('');
-  const comparativeMetrics = report.metrics.map(metric => {
-    const max = Math.max(metric.own, metric.enemy, 1);
-    return `<div class="compare-metric"><div class="compare-metric-head"><span>${escapeHtml(metric.label)}</span><small>${metric.own} · ${metric.enemy}</small></div><div class="compare-meter"><i class="ours" style="width:${Math.round(metric.own / max * 100)}%"></i></div><div class="compare-meter enemy"><i style="width:${Math.round(metric.enemy / max * 100)}%"></i></div></div>`;
-  }).join('');
+  const report = compareCompositions(
+    ownIds, enemyIds, championById, COUNTERS,
+    state.picks[enemy], state.picks[team], SYNERGIES,
+  );
   const ownTone = team === 'blue' ? 'blue' : 'red';
   const enemyTone = enemy === 'blue' ? 'blue' : 'red';
-  const focus = report.focus.length ? `<div class="focus-line"><span>FOCO RIVAL</span><strong>${report.focus.map(escapeHtml).join(' → ')}</strong></div>` : '';
-  const status = report.enemyCount < 5 ? report.draftStatus : 'Rival completo · analiza su identidad y nuestros matchups.';
   const ownPct = Math.round(ownIds.length / 5 * 100);
   const enemyPct = Math.round(enemyIds.length / 5 * 100);
+  const comparativeMetrics = report.metrics.map(item => {
+    const max = Math.max(item.own, item.enemy, 1);
+    return `<div class="compare-metric"><div class="compare-metric-head"><span>${escapeHtml(item.label)}</span><small>${item.own} · ${item.enemy}</small></div><div class="compare-meter"><i class="ours" style="width:${Math.round(item.own / max * 100)}%"></i></div><div class="compare-meter enemy"><i style="width:${Math.round(item.enemy / max * 100)}%"></i></div></div>`;
+  }).join('');
+  const lanes = report.lanePriority.map(lane => {
+    const tone = lane.priority === 'Prioridad VK' ? 'vk-edge' : lane.priority === 'Prioridad rival' ? 'enemy-edge' : lane.priority === 'Pendiente' ? 'pending-edge' : 'even-edge';
+    return `<article class="lane-priority-card ${tone}"><div class="lane-card-head"><span>${escapeHtml(lane.label)}</span><b>${escapeHtml(lane.priority)}</b></div><div class="lane-matchup"><strong>${escapeHtml(lane.ownChampion || 'Pendiente')}</strong><span>VS</span><strong>${escapeHtml(lane.enemyChampion || 'Pendiente')}</strong></div><p>${escapeHtml(lane.explanation)}</p></article>`;
+  }).join('');
+  const direct = report.edges.map(edge => `<div class="matchup-edge">${championAvatar(getChampion(edge.counter),'tiny')}<strong>${escapeHtml(championName(edge.counter))}</strong><span>presiona a</span>${championAvatar(getChampion(edge.target),'tiny')}<strong>${escapeHtml(championName(edge.target))}</strong><b>+</b></div>`).join('');
+  const focus = report.focus.length ? `<div class="focus-line"><span>FOCO RIVAL</span><strong>${report.focus.map(escapeHtml).join(' → ')}</strong></div>` : '';
+  const status = report.ownCount < 5 || report.enemyCount < 5 ? `Lectura parcial · VK ${report.ownCount}/5 · Rival ${report.enemyCount}/5. La comparativa se completa cuando ambos equipos revelen sus cinco picks.` : 'Composiciones completas · comparativa de draft disponible.';
+  const advantage = report.draftAdvantage
+    ? `<section class="draft-advantage"><div class="advantage-heading"><div><span class="section-kicker">ÍNDICE COMPARATIVO DE DRAFT · NO WIN RATE</span><h3>${escapeHtml(report.draftAdvantage.favored)} <small>con ventaja de composición</small></h3></div><span class="advantage-confidence">Confianza ${escapeHtml(report.draftAdvantage.confidence)}</span></div><div class="advantage-scores"><div class="advantage-team vk"><span>VK SinADC · índice</span><strong>${report.draftAdvantage.own}/100</strong></div><div class="advantage-team enemy"><span>Rival · índice</span><strong>${report.draftAdvantage.enemy}/100</strong></div></div><div class="advantage-track"><i class="vk-fill" style="width:${report.draftAdvantage.own}%"></i><i class="enemy-fill" style="width:${report.draftAdvantage.enemy}%"></i></div><p>${escapeHtml(report.draftAdvantage.label)} Los puntos distribuyen una ventaja relativa de draft (0–100) entre ambos lados; no son porcentajes de probabilidad ni win rate real.</p></section>`
+    : `<section class="draft-advantage draft-advantage-pending"><span class="section-kicker">ÍNDICE COMPARATIVO DE DRAFT · NO WIN RATE</span><strong>Esperando las dos composiciones completas</strong><p>Se necesita registrar los cinco picks de VK SinADC y los cinco del rival. Antes de eso, cualquier porcentaje sería demasiado especulativo.</p></section>`;
   container.innerHTML = `<div class="matchup-status">${escapeHtml(status)}</div>
-    <div class="versus-styles">
-      <div class="style-side ${ownTone}"><small>VK SinADC · ${team.toUpperCase()} · ${ownIds.length}/5</small><strong>${escapeHtml(report.ownStyle)}</strong><div class="style-meter"><i style="width:${ownPct}%"></i></div></div>
-      <div class="versus-mark">VS</div>
-      <div class="style-side ${enemyTone}"><small>RIVAL · ${enemy.toUpperCase()} · ${enemyIds.length}/5</small><strong>${escapeHtml(report.enemyStyle)}</strong><div class="style-meter"><i style="width:${enemyPct}%"></i></div></div>
-    </div>
-    <div class="matchup-subsection"><span class="section-kicker">COMPARATIVA DE HERRAMIENTAS · VK SinADC / RIVAL</span><div class="comparison-grid">${comparativeMetrics}</div><div class="comparison-legend"><span><i class="legend-our"></i>VK SinADC</span><span><i class="legend-enemy"></i>RIVAL</span></div></div>
-    ${direct ? `<div class="matchup-subsection"><span class="section-kicker">MATCHUPS DETECTADOS</span>${direct}</div>` : ''}
-    <div class="matchup-subsection"><span class="section-kicker">PLAN DE PARTIDA</span>
-      <article class="game-phase"><span>01 · EARLY GAME</span><p>${escapeHtml(report.earlyPlan)}</p></article>
-      <article class="game-phase"><span>02 · OBJETIVOS</span><p>${escapeHtml(report.objectivePlan)}</p></article>
-      <article class="game-phase"><span>03 · TEAMFIGHT</span><p>${escapeHtml(report.fightPlan)}</p></article>
-    </div>
-    <div class="matchup-subsection"><span class="section-kicker">LECTURA Y AJUSTES</span>${actions}</div>
-    ${focus}`;
+    <div class="versus-styles"><div class="style-side ${ownTone}"><small>VK SinADC · ${team.toUpperCase()} · ${ownIds.length}/5</small><strong>${escapeHtml(report.ownStyle)}</strong><div class="style-meter"><i style="width:${ownPct}%"></i></div></div><div class="versus-mark">VS</div><div class="style-side ${enemyTone}"><small>RIVAL · ${enemy.toUpperCase()} · ${enemyIds.length}/5</small><strong>${escapeHtml(report.enemyStyle)}</strong><div class="style-meter"><i style="width:${enemyPct}%"></i></div></div></div>
+    ${advantage}
+    <div class="matchup-subsection"><span class="section-kicker">COMPARATIVA DE HERRAMIENTAS · VK / RIVAL</span><div class="comparison-grid">${comparativeMetrics}</div><div class="comparison-legend"><span><i class="legend-our"></i>VK SinADC</span><span><i class="legend-enemy"></i>RIVAL</span></div></div>
+    <div class="matchup-subsection"><span class="section-kicker">PRIORIDAD POTENCIAL POR LÍNEA</span><p class="report-explainer">La prioridad se estima por counters registrados y perfil del campeón. No garantiza prioridad real de oleada: también depende de matchup, ejecución, visión y cobertura del jungla.</p><div class="lane-priority-grid">${lanes}</div></div>
+    ${direct ? `<div class="matchup-subsection"><span class="section-kicker">COUNTERS DIRECTOS DETECTADOS</span>${direct}</div>` : ''}${focus}`;
+
+  planContainer.innerHTML = `<div class="game-plan-grid"><article class="game-phase"><span>01 · EARLY GAME</span><p>${escapeHtml(report.earlyPlan)}</p></article><article class="game-phase"><span>02 · DRAGÓN / HERALDO / BARÓN</span><p>${escapeHtml(report.objectivePlan)}</p></article><article class="game-phase"><span>03 · TEAMFIGHT Y CIERRE</span><p>${escapeHtml(report.fightPlan)}</p></article></div>`;
+  const actions = report.actions.map(action => `<article class="matchup-action ${action.type}"><strong>${escapeHtml(action.title)}</strong><p>${escapeHtml(action.text)}</p></article>`).join('');
+  const prioritySummary = report.lanePriority.filter(lane => lane.priority !== 'Pendiente').sort((a, b) => Math.abs(b.score) - Math.abs(a.score)).slice(0, 3);
+  const laneSummary = prioritySummary.length ? `<div class="priority-summary"><span class="section-kicker">LÍNEAS QUE DEBEMOS JUGAR</span>${prioritySummary.map(lane => `<div><b>${escapeHtml(lane.label)}</b><span>${escapeHtml(lane.priority)}</span></div>`).join('')}</div>` : '';
+  adjustmentsContainer.innerHTML = `${laneSummary}<div class="adjustments-grid">${actions}</div>`;
   bindChampionImages(container);
 }
 
@@ -774,6 +976,7 @@ function renderDraft() {
 }
 
 function openPicker(target) {
+  if (currentGameIsCompleted()) return notify('Este game ya está finalizado. Inicia el siguiente game para continuar.');
   pickerTarget = target;
   pickerFilter = target.type === 'pick' ? 'role' : 'all';
   $('#picker-title').textContent = target.type === 'ban' ? 'Seleccionar campeón para banear' : `Seleccionar ${roleLabel(target.role).toLowerCase()}`;
@@ -799,6 +1002,7 @@ function renderChampionOptions() {
   const team = pickerTarget.team;
   const taken = new Set(allPickIds());
   const banned = new Set(allBanIds());
+  const seriesLocked = seriesLockedMap();
   let champions = [...CHAMPIONS];
   if (pickerTarget.type === 'pick' && pickerFilter === 'role') champions = champions.filter(champion => champion.roles.includes(pickerTarget.role));
   if (search) champions = champions.filter(champion => champion.name.toLowerCase().includes(search));
@@ -806,8 +1010,9 @@ function renderChampionOptions() {
   const targetTeamExisting = state.picks[team][pickerTarget.role];
   $('#champion-grid').innerHTML = champions.length ? champions.map(champion => {
     const isSameSlot = pickerTarget.type === 'pick' && targetTeamExisting === champion.id;
-    const unavailable = (taken.has(champion.id) && !isSameSlot) || banned.has(champion.id);
-    const reason = banned.has(champion.id) ? 'BANEADO' : taken.has(champion.id) && !isSameSlot ? 'SELECCIONADO' : (champion.roles.map(roleLabel).join(' · ') || 'CATÁLOGO GENERAL');
+    const fearlessGame = seriesLocked.get(champion.id);
+    const unavailable = (taken.has(champion.id) && !isSameSlot) || banned.has(champion.id) || Boolean(fearlessGame);
+    const reason = fearlessGame ? `FEARLESS · G${fearlessGame}` : banned.has(champion.id) ? 'BANEADO' : taken.has(champion.id) && !isSameSlot ? 'SELECCIONADO' : (champion.roles.map(roleLabel).join(' · ') || 'CATÁLOGO GENERAL');
     return `<button class="champion-option" data-select-champion="${champion.id}" ${unavailable ? 'disabled' : ''}>${championAvatar(champion,'picker')}<span style="min-width:0"><strong>${escapeHtml(champion.name)}</strong><small>${escapeHtml(reason)}</small></span></button>`;
   }).join('') : '<div class="no-results">No se encontraron campeones.</div>';
   bindChampionImages($('#champion-grid'));
@@ -816,6 +1021,9 @@ function renderChampionOptions() {
 function selectChampion(championId) {
   if (!pickerTarget) return;
   const { type, team, role, index } = pickerTarget;
+  if (currentGameIsCompleted()) return notify('Este game ya está finalizado.');
+  const lockedInSeries = seriesLockedMap();
+  if (lockedInSeries.has(championId)) return notify(`${championName(championId)} está bloqueado por Fearless Draft desde Game ${lockedInSeries.get(championId)}.`);
   if (allBanIds().includes(championId) && type === 'pick') return notify('Ese campeón está baneado.');
   if (allPickIds().includes(championId) && type === 'ban') return notify('No puedes banear un campeón que ya fue seleccionado.');
   if (type === 'pick') {
@@ -833,15 +1041,18 @@ function selectChampion(championId) {
 }
 
 function removePick(team, role) {
+  if (currentGameIsCompleted()) return notify('Este game ya está finalizado.');
   state.picks[team][role] = null;
   renderDraft();
 }
 function removeBan(team, index) {
+  if (currentGameIsCompleted()) return notify('Este game ya está finalizado.');
   state.bans[team][index] = null;
   renderDraft();
 }
 
 function applyBuild(index) {
+  if (currentGameIsCompleted()) return notify('Este game ya está finalizado.');
   const builds = $('#build-recommendations')._buildResults || [];
   const build = builds[index];
   if (!build?.result) return notify('No se pudo aplicar esta composición.');
@@ -854,6 +1065,7 @@ function applyBuild(index) {
 }
 
 function applyTemplate(templateId) {
+  if (currentGameIsCompleted()) return notify('Este game ya está finalizado.');
   const template = allTemplates().find(item => item.id === templateId);
   if (!template) return;
   const team = ownTeam();
@@ -861,6 +1073,9 @@ function applyTemplate(templateId) {
   if (existing && !confirm('Esta acción reemplazará los picks actuales de tu equipo. ¿Continuar?')) return;
   const pickedByEnemy = new Set(teamIds(enemyTeam()));
   const bannedByEnemy = new Set(state.bans[enemyTeam()].filter(Boolean));
+  const locked = seriesLockedMap();
+  const lockedTemplatePick = ROLES.map(role => template.picks[role.id]).find(id => locked.has(id));
+  if (lockedTemplatePick) return notify(`${championName(lockedTemplatePick)} está bloqueado por Fearless Draft desde Game ${locked.get(lockedTemplatePick)}.`);
   const templateIds = ROLES.map(role => template.picks[role.id]).filter(Boolean);
   if (new Set(templateIds).size !== templateIds.length) return notify('La plantilla contiene campeones repetidos.');
   for (const [role, champion] of Object.entries(template.picks)) {
@@ -1013,6 +1228,17 @@ function validImportedState(payload) {
     }
   }
   next.customTemplates = Array.isArray(imported.customTemplates) ? imported.customTemplates.filter(item => item && typeof item.id === 'string' && typeof item.name === 'string' && item.picks && ROLES.every(role => championById.has(item.picks[role.id]))).slice(0,100) : [];
+  const fallbackGame = { side: next.side, picks: { blue: { ...next.picks.blue }, red: { ...next.picks.red } }, bans: { blue: [...next.bans.blue], red: [...next.bans.red] }, slotRoles: { blue: [...next.slotRoles.blue], red: [...next.slotRoles.red] }, completed: false, completedAt: null };
+  next.series = sanitizeSeries(imported.series, next.format, next.side, fallbackGame);
+  if (imported.series?.games?.length) {
+    const active = next.series.games[next.series.activeGame - 1];
+    next.side = active.side;
+    next.picks = { blue: { ...active.picks.blue }, red: { ...active.picks.red } };
+    next.bans = { blue: [...active.bans.blue], red: [...active.bans.red] };
+    next.slotRoles = { blue: [...active.slotRoles.blue], red: [...active.slotRoles.red] };
+  } else {
+    next.series.games[0] = fallbackGame;
+  }
   return next;
 }
 
@@ -1053,6 +1279,7 @@ function exportDraft() {
 }
 
 function resetDraft() {
+  if (currentGameIsCompleted()) return notify('El game está finalizado. Usa Nueva serie para comenzar otra serie.');
   if (!confirm('¿Reiniciar los picks y bans de esta partida? Tus prioridades CORE, alternativas y composiciones guardadas se conservarán.')) return;
   state.picks = { blue: EMPTY_TEAM(), red: EMPTY_TEAM() };
   state.bans = { blue: Array(5).fill(null), red: Array(5).fill(null) };
@@ -1062,6 +1289,7 @@ function resetDraft() {
 }
 
 function clearOwnPicks() {
+  if (currentGameIsCompleted()) return notify('El game está finalizado.');
   if (!confirm('¿Quitar los cinco picks de tu equipo? Los bans y el rival se conservarán.')) return;
   state.picks[ownTeam()] = EMPTY_TEAM();
   renderDraft();
@@ -1073,10 +1301,27 @@ function bindEvents() {
   $('#side-switch').addEventListener('click', event => {
     const button = event.target.closest('[data-side]');
     if (!button) return;
+    if (currentGameIsCompleted()) return notify('Este game ya está finalizado; el lado de selección queda fijado.');
     state.side = button.dataset.side;
     renderDraft();
   });
-  $('#format-select').addEventListener('change', event => { state.format = event.target.value; saveState(); });
+  $('#format-select').addEventListener('change', event => {
+    const nextFormat = event.target.value;
+    const hasProgress = state.series.games.some(game => game.completed || [...Object.values(game.picks.blue), ...Object.values(game.picks.red), ...game.bans.blue, ...game.bans.red].some(Boolean));
+    if (hasProgress && !confirm('Cambiar el formato reiniciará los games y los bloqueos Fearless de la serie actual. ¿Continuar?')) { renderSetup(); return; }
+    startNewSeries(nextFormat);
+    renderDraft();
+    notify(`Nueva serie ${nextFormat} creada.`);
+  });
+  $('#finish-game-btn').addEventListener('click', finishCurrentGame);
+  $('#next-game-btn').addEventListener('click', () => switchSeriesGame(state.series.activeGame + 1));
+  $('#new-series-btn').addEventListener('click', () => {
+    const hasProgress = state.series.games.some(game => game.completed || [...Object.values(game.picks.blue), ...Object.values(game.picks.red), ...game.bans.blue, ...game.bans.red].some(Boolean));
+    if (hasProgress && !confirm('Se borrará el registro temporal de la serie y se liberarán todos los campeones Fearless. ¿Iniciar una nueva serie?')) return;
+    startNewSeries(state.format);
+    renderDraft();
+    notify('Nueva serie iniciada. Los bloqueos Fearless anteriores se han limpiado.');
+  });
   $('#export-btn').addEventListener('click', exportDraft);
   $('#import-btn').addEventListener('click', () => $('#import-file').click());
   $('#import-file').addEventListener('change', event => importBackup(event.target.files?.[0]));
@@ -1093,6 +1338,8 @@ function bindEvents() {
     if (poolTier) setPoolTier(poolTier.dataset.role, poolTier.dataset.champion, poolTier.value);
   });
   document.addEventListener('click', event => {
+    const seriesTab = event.target.closest('[data-series-game]');
+    if (seriesTab) return switchSeriesGame(Number(seriesTab.dataset.seriesGame));
     const pickSlot = event.target.closest('[data-pick-slot]');
     if (pickSlot) {
       const { pickSlot: team, role } = pickSlot.dataset;
@@ -1109,6 +1356,9 @@ function bindEvents() {
     if (selected && !selected.disabled) return selectChampion(selected.dataset.selectChampion);
     const rec = event.target.closest('[data-select-rec]');
     if (rec) {
+      if (currentGameIsCompleted()) return notify('Este game ya está finalizado.');
+      const locked = seriesLockedMap();
+      if (locked.has(rec.dataset.selectRec)) return notify(`${championName(rec.dataset.selectRec)} está bloqueado por Fearless Draft desde Game ${locked.get(rec.dataset.selectRec)}.`);
       const team = ownTeam();
       state.picks[team][rec.dataset.role] = rec.dataset.selectRec;
       renderDraft();

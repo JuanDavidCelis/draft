@@ -208,3 +208,235 @@
 .auth-eyebrow{color:var(--vk-gold)}
 .mobile-brand .brand-mark{width:31px;height:31px;font-size:13px;letter-spacing:-1.2px}
 .mobile-brand strong span{color:var(--vk-gold)}
+
+/* v0.6.0 — Fearless series workflow and full-width coach intelligence */
+.draft-layout{display:block;grid-template-columns:1fr;gap:18px}
+.draft-main-column{display:grid;grid-template-columns:minmax(0,1fr);gap:17px}
+.series-panel{padding:17px 19px;margin:0 0 17px;background:linear-gradient(130deg,#171b2e,#101825 62%,#1c1929);border-color:#473c69}
+.series-head{display:flex;align-items:flex-start;justify-content:space-between;gap:22px}
+.series-title h2{font:800 25px/1.05 var(--display);margin:5px 0 4px;color:#f4edff;letter-spacing:.4px}
+.series-title p{margin:0;max-width:700px;color:#9daac0;font-size:11px;line-height:1.55}
+.series-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.series-lock-count{font-size:8px;letter-spacing:.8px;font-weight:900;color:#d7c7ff;background:#29223e;border:1px solid #594c80;border-radius:6px;padding:8px 10px;white-space:nowrap}
+.series-actions .button{font-size:9px;padding:9px 11px}
+.series-actions .button:disabled{opacity:.45;filter:saturate(.55);cursor:not-allowed;transform:none}
+.series-games{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
+.series-game-tab{min-width:106px;border:1px solid #33405a;border-radius:7px;background:#111c2b;color:#bac8dc;padding:9px 12px;text-align:left;transition:border-color .18s,background .18s,transform .18s}
+.series-game-tab strong,.series-game-tab small{display:block}
+.series-game-tab strong{font:800 15px var(--display);letter-spacing:.5px}
+.series-game-tab small{font-size:7px;letter-spacing:.8px;font-weight:900;color:#8194af;margin-top:2px}
+.series-game-tab:hover:not(:disabled){border-color:var(--vk-violet);transform:translateY(-1px)}
+.series-game-tab.active{background:linear-gradient(135deg,#30264b,#1c2035);border-color:#9b82e5;box-shadow:0 0 0 1px #9b82e522,inset 0 0 18px #a88cff0b}
+.series-game-tab.active small{color:#d8c9ff}
+.series-game-tab.completed{border-color:#3a705e;background:#12251f}
+.series-game-tab.completed small{color:#89e2bd}
+.series-game-tab:disabled{opacity:.34;cursor:not-allowed}
+.series-locks{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:13px;padding-top:12px;border-top:1px solid #30334a;min-height:44px}
+.series-lock-copy{display:grid;gap:3px;min-width:170px}
+.series-lock-copy strong{font-size:8px;letter-spacing:.9px;color:#d8caff}
+.series-lock-copy small{font-size:9px;line-height:1.45;color:#8f9db4}
+.series-lock-chips{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}
+.series-lock-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 7px;border:1px solid #5d4b79;border-radius:5px;background:#211c33;color:#e5dbff}
+.series-lock-chip b{font-size:8px}
+.series-lock-chip small{font-size:7px;color:#bba9e8;font-weight:900}
+.series-lock-chip .champion-avatar{width:20px;height:20px;flex:0 0 20px}
+.coach-reports{display:grid;gap:15px;margin-top:20px}
+.reports-heading{display:flex;align-items:flex-end;justify-content:space-between;padding:4px 2px 1px}
+.reports-heading h2{font:800 31px/1 var(--display);margin:5px 0;color:#f2edff}
+.reports-heading h2 em{font-style:normal;color:var(--vk-violet)}
+.reports-heading p{font-size:11px;color:#91a1b8;margin:7px 0 0}
+.reports-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px;align-items:start}
+.report-card{padding:21px;min-width:0;min-height:100%;}
+.report-card .section-heading{margin-bottom:16px}
+.report-card .section-heading h2{font-size:26px}
+.report-wide{grid-column:1/-1}
+.report-tools{padding:15px 19px}
+.tools-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.tools-row .tool-button{border-top:0;border-left:1px solid #243246;padding:7px 12px}
+.tools-row .tool-button:first-child{border-left:0}
+.report-disclaimer{font-size:9px;text-align:center;padding:4px 8px 0}
+.analysis-panel .analysis-grade{padding:14px;gap:14px}
+.analysis-panel .grade-letter{width:46px;height:46px;font-size:29px}
+.analysis-panel .analysis-grade strong{font-size:14px}
+.analysis-panel .analysis-grade small{font-size:10px}
+.analysis-panel .metric-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 20px}
+.analysis-panel .metric-label,.analysis-panel .metric-label b{font-size:11px}
+.analysis-panel .metric-track{height:7px}
+.analysis-panel .warning{font-size:10px;padding:10px 11px;line-height:1.45}
+.wincon-inline{margin-top:16px;padding:14px 15px;border:1px solid #473e6c;border-radius:8px;background:linear-gradient(120deg,#201d36,#161b2b)}
+.wincon-inline h3{font:700 21px var(--display);margin:5px 0;color:#f2edff}
+.wincon-inline p{margin:0;color:#a6b3c7;font-size:11px;line-height:1.6}
+.matchup-status{font-size:10px;margin-bottom:13px}
+.versus-styles{gap:11px;grid-template-columns:minmax(0,1fr) 34px minmax(0,1fr)}
+.style-side{padding:13px}
+.style-side small{font-size:9px}
+.style-side strong{font-size:14px}
+.style-meter{height:5px}
+.matchup-subsection{gap:10px;margin-top:17px}
+.matchup-subsection>.section-kicker{font-size:9px}
+.comparison-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:13px 18px;padding:14px}
+.compare-metric-head span{font-size:10px}
+.compare-metric-head small{font-size:9px}
+.compare-meter{height:6px}
+.comparison-legend{font-size:9px}
+.matchup-edge{font-size:10px;padding:8px 10px}
+.matchup-edge strong{font-size:10px}
+.focus-line{padding:10px 12px}
+.focus-line span{font-size:9px}
+.focus-line strong{font-size:10px}
+.draft-advantage{margin-top:16px;padding:16px 17px;border:1px solid #4d456e;border-radius:9px;background:linear-gradient(125deg,#201d35,#142032 70%)}
+.advantage-heading{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.advantage-heading h3{font:800 23px var(--display);margin:5px 0 0;color:#eee8ff}
+.advantage-heading h3 small{font:600 10px var(--font);color:#9babc1}
+.advantage-confidence{font-size:8px;letter-spacing:.7px;font-weight:900;color:#c6b6f4;background:#332c4a;border:1px solid #63558a;padding:6px 8px;border-radius:5px}
+.advantage-scores{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:13px}
+.advantage-team{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:7px;background:#142b43;border:1px solid #315c83}
+.advantage-team.enemy{background:#30202b;border-color:#67414e}
+.advantage-team span{font-size:10px;font-weight:800;color:#c1d9f2}
+.advantage-team.enemy span{color:#f0c3cc}
+.advantage-team strong{font:800 23px var(--display);color:#92caff}
+.advantage-team.enemy strong{color:#f1a2af}
+.advantage-track{height:9px;border-radius:10px;overflow:hidden;display:flex;background:#263447;margin-top:9px}
+.advantage-track .vk-fill{height:100%;background:linear-gradient(90deg,#477fca,#8d7be2)}
+.advantage-track .enemy-fill{height:100%;background:linear-gradient(90deg,#ad6275,#df8996)}
+.draft-advantage>p{font-size:9px;line-height:1.5;color:#8f9eb5;margin:9px 0 0}
+.draft-advantage-pending{display:grid;gap:7px;min-height:104px;align-content:center}
+.draft-advantage-pending strong{font-size:13px;color:#dae5f4}
+.draft-advantage-pending p{margin:0;font-size:10px;line-height:1.55;color:#91a3bc}
+.report-explainer{font-size:10px;line-height:1.55;color:#92a4bc;margin:0}
+.lane-priority-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.lane-priority-card{padding:12px 13px;border-radius:8px;background:#101b29;border:1px solid #2b3d55;min-width:0}
+.lane-card-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.lane-card-head>span{font-size:10px;font-weight:900;color:#bfcde0}
+.lane-card-head>b{font-size:8px;letter-spacing:.4px;padding:4px 6px;border-radius:4px;background:#263246;color:#c1cfe0;white-space:nowrap}
+.lane-priority-card.vk-edge{border-color:#3a6384;background:#12243a}
+.lane-priority-card.vk-edge .lane-card-head>b{background:#224c70;color:#b8dcff}
+.lane-priority-card.enemy-edge{border-color:#72434d;background:#281d28}
+.lane-priority-card.enemy-edge .lane-card-head>b{background:#57303b;color:#ffc1cb}
+.lane-priority-card.pending-edge{opacity:.68}
+.lane-matchup{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:9px}
+.lane-matchup strong{font-size:11px;color:#ecf2fc;overflow-wrap:anywhere}
+.lane-matchup>span{font:900 9px var(--display);color:#7f91aa}
+.lane-priority-card p{margin:8px 0 0;color:#98a9bf;font-size:9px;line-height:1.5}
+.game-plan-grid{display:grid;gap:11px}
+.game-phase{padding:13px 14px;border-left:3px solid #9279df;background:#151c2d;border-radius:0 7px 7px 0}
+.game-phase>span{font-size:9px;letter-spacing:.8px}
+.game-phase p{font-size:11px;line-height:1.6;margin-top:7px;color:#b1bfd2}
+.adjustments-grid{display:grid;gap:10px}
+.matchup-action{padding:12px 13px}
+.matchup-action strong{font-size:11px}
+.matchup-action p{font-size:10px;line-height:1.55;margin-top:6px}
+.priority-summary{display:grid;gap:7px;padding:12px;margin-bottom:12px;border:1px solid #3c3a5e;border-radius:7px;background:#171a2d}
+.priority-summary>div{display:flex;justify-content:space-between;gap:8px;color:#c1cce0;font-size:10px}
+.priority-summary>div span{color:#bcaaf0;font-weight:800}
+.ban-slot:disabled,.pick-slot:disabled,.pick-role-select:disabled{opacity:.68;cursor:not-allowed;filter:saturate(.75)}
+@media(max-width:1100px){.series-head{display:grid}.series-actions{justify-content:flex-start}.reports-grid{grid-template-columns:1fr}.report-wide{grid-column:auto}.tools-row{grid-template-columns:1fr}.tools-row .tool-button{border-left:0;border-top:1px solid #243246}.tools-row .tool-button:first-child{border-top:0}}
+@media(max-width:700px){.series-panel{padding:13px}.series-head{gap:13px}.series-actions{display:grid;grid-template-columns:1fr 1fr}.series-lock-count{grid-column:1/-1;text-align:center}.series-games{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.series-game-tab{min-width:0;text-align:center;padding:8px 5px}.series-locks{display:block}.series-lock-chips{justify-content:flex-start;margin-top:9px}.reports-heading h2{font-size:27px}.report-card{padding:15px}.analysis-panel .metric-list{grid-template-columns:1fr}.comparison-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.lane-priority-grid{grid-template-columns:1fr}.advantage-heading{align-items:flex-start;flex-direction:column}.advantage-scores{gap:7px}.advantage-team{padding:8px}.advantage-team span{font-size:9px}.advantage-team strong{font-size:20px}.style-side{padding:9px}.style-side strong{font-size:11px}}
+
+/* v0.6.0 — readable tournament series and coach reports */
+.series-title p{font-size:13px;max-width:820px}
+.series-lock-count{font-size:10px;padding:9px 12px}
+.series-actions .button{font-size:11px;padding:10px 13px}
+.series-game-tab{min-width:120px;padding:11px 14px}
+.series-game-tab strong{font-size:17px}
+.series-game-tab small{font-size:9px}
+.series-lock-copy strong{font-size:10px}
+.series-lock-copy small{font-size:12px;line-height:1.55}
+.series-lock-chip{padding:6px 9px;gap:7px}
+.series-lock-chip b{font-size:11px}
+.series-lock-chip small{font-size:9px}
+.series-lock-chip .champion-avatar{width:24px;height:24px;flex-basis:24px}
+.coach-reports{gap:19px;margin-top:24px}
+.reports-heading h2{font-size:35px}
+.reports-heading p{font-size:14px;line-height:1.55}
+.reports-grid{gap:19px}
+.report-card{padding:24px}
+.report-card .section-heading{margin-bottom:19px}
+.report-card .section-heading h2{font-size:28px}
+.report-card .section-kicker,.report-card .matchup-subsection>.section-kicker{font-size:11px;letter-spacing:1px}
+.report-disclaimer{font-size:11px;line-height:1.55}
+.analysis-panel .analysis-grade{padding:17px;gap:16px}
+.analysis-panel .grade-letter{width:54px;height:54px;font-size:33px}
+.analysis-panel .analysis-grade strong{font-size:17px}
+.analysis-panel .analysis-grade small{font-size:13px;line-height:1.5}
+.analysis-panel .metric-list{gap:17px 22px}
+.analysis-panel .metric-label,.analysis-panel .metric-label b{font-size:13px}
+.analysis-panel .metric-track{height:9px}
+.analysis-panel .warning{font-size:13px;padding:12px 13px;line-height:1.55}
+.wincon-inline{padding:17px 18px}
+.wincon-inline h3{font-size:24px}
+.wincon-inline p{font-size:14px;line-height:1.65}
+.matchup-status{font-size:13px;line-height:1.55;margin-bottom:16px}
+.versus-styles{gap:14px;grid-template-columns:minmax(0,1fr) 42px minmax(0,1fr)}
+.style-side{padding:17px}
+.style-side small{font-size:11px}
+.style-side strong{font-size:18px;line-height:1.35}
+.style-meter{height:7px}
+.matchup-subsection{gap:13px;margin-top:21px}
+.comparison-grid{gap:16px 22px;padding:17px}
+.compare-metric-head span{font-size:13px}
+.compare-metric-head small{font-size:12px}
+.compare-meter{height:8px}
+.comparison-legend{font-size:12px}
+.matchup-edge{font-size:13px;padding:10px 12px;gap:8px}
+.matchup-edge strong{font-size:13px}
+.focus-line{padding:13px 15px}
+.focus-line span{font-size:11px}
+.focus-line strong{font-size:13px}
+.draft-advantage{padding:19px 20px}
+.advantage-heading h3{font-size:27px}
+.advantage-heading h3 small{font-size:13px}
+.advantage-confidence{font-size:10px;padding:7px 10px}
+.advantage-team{padding:13px 15px}
+.advantage-team span{font-size:13px}
+.advantage-team strong{font-size:29px}
+.advantage-track{height:11px}
+.draft-advantage>p{font-size:12px;line-height:1.6}
+.draft-advantage-pending{min-height:125px}
+.draft-advantage-pending strong{font-size:16px}
+.draft-advantage-pending p{font-size:13px;line-height:1.6}
+.report-explainer{font-size:13px;line-height:1.65}
+.lane-priority-grid{gap:12px}
+.lane-priority-card{padding:15px 16px}
+.lane-card-head>span{font-size:13px}
+.lane-card-head>b{font-size:10px;padding:5px 7px}
+.lane-matchup{margin-top:11px}
+.lane-matchup strong{font-size:14px}
+.lane-matchup>span{font-size:11px}
+.lane-priority-card p{font-size:12px;line-height:1.6}
+.game-plan-grid{gap:13px}
+.game-phase{padding:16px 17px}
+.game-phase>span{font-size:11px;letter-spacing:.9px}
+.game-phase p{font-size:14px;line-height:1.7;margin-top:8px}
+.adjustments-grid{gap:12px}
+.matchup-action{padding:15px 16px}
+.matchup-action strong{font-size:14px}
+.matchup-action p{font-size:13px;line-height:1.65;margin-top:7px}
+.priority-summary{gap:9px;padding:15px;margin-bottom:14px}
+.priority-summary>div{font-size:13px}
+@media(max-width:700px){
+  .reports-heading h2{font-size:29px}
+  .reports-heading p{font-size:13px}
+  .report-card{padding:17px}
+  .report-card .section-heading h2{font-size:23px}
+  .analysis-panel .metric-label,.analysis-panel .metric-label b{font-size:13px}
+  .analysis-panel .warning{font-size:12px}
+  .wincon-inline h3{font-size:21px}
+  .wincon-inline p{font-size:13px}
+  .versus-styles{grid-template-columns:minmax(0,1fr) 25px minmax(0,1fr);gap:7px}
+  .style-side{padding:10px}
+  .style-side small{font-size:9px}
+  .style-side strong{font-size:13px}
+  .comparison-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;padding:13px}
+  .compare-metric-head span{font-size:12px}
+  .compare-metric-head small{font-size:11px}
+  .lane-priority-card p{font-size:12px}
+  .game-phase p{font-size:13px}
+  .matchup-action p{font-size:12px}
+  .series-lock-count{font-size:9px}
+  .series-game-tab strong{font-size:15px}
+  .series-game-tab small{font-size:8px}
+}
+
+@media(max-width:1100px){.reports-grid{grid-template-columns:1fr}.report-wide{grid-column:auto}.tools-row{grid-template-columns:1fr}.tools-row .tool-button{border-left:0;border-top:1px solid #243246}.tools-row .tool-button:first-child{border-top:0}}
+@media(max-width:700px){.reports-grid{grid-template-columns:1fr}.report-wide{grid-column:auto}.tools-row{grid-template-columns:1fr}}

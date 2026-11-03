@@ -107,7 +107,89 @@ export function classifyComposition(stats, ids = [], championMap = new Map()) {
   return 'Flexible / control de mapa';
 }
 
-export function compareCompositions(ownIds, enemyIds, championMap, counterPairs = [], enemyRolePicks = {}) {
+
+const ROLE_PRIORITY_LABELS = {
+  baron: 'Barón', jungle: 'Jungla · tempo', mid: 'Mid', adc: 'ADC', support: 'Soporte',
+};
+
+function pairValue(pairs, sourceId, targetId) {
+  return pairs.find(([source, target]) => source === sourceId && target === targetId)?.[2] || 0;
+}
+
+function laneProfileValue(champion, role) {
+  if (!champion) return 0;
+  const tags = champion.tags || [];
+  const has = tag => tags.includes(tag);
+  if (role === 'baron') return (has('lane-pressure') ? 1.1 : 0) + (champion.poke || 0) * 0.16 + (champion.waveclear || 0) * 0.12 + (champion.antiTank || 0) * 0.12;
+  if (role === 'jungle') return (has('early') ? 1.0 : 0) + (champion.dive || 0) * 0.22 + (champion.engage || 0) * 0.14 + (champion.cc || 0) * 0.1;
+  if (role === 'mid') return (champion.waveclear || 0) * 0.28 + (champion.poke || 0) * 0.2 + (champion.cc || 0) * 0.12;
+  if (role === 'adc') return (has('lane-pressure') ? 0.8 : 0) + (champion.poke || 0) * 0.2 + (champion.waveclear || 0) * 0.12;
+  if (role === 'support') return (champion.engage || 0) * 0.18 + (champion.cc || 0) * 0.16 + (champion.peel || 0) * 0.12 + (champion.poke || 0) * 0.1;
+  return 0;
+}
+
+export function analyzeLanePriority(ownRolePicks, enemyRolePicks, championMap, counterPairs = [], synergyPairs = []) {
+  const roles = ['baron', 'jungle', 'mid', 'adc', 'support'];
+  return roles.map(role => {
+    const ownId = ownRolePicks?.[role];
+    const enemyId = enemyRolePicks?.[role];
+    const ownChampion = championMap.get(ownId);
+    const enemyChampion = championMap.get(enemyId);
+    if (!ownChampion || !enemyChampion) {
+      return { role, label: ROLE_PRIORITY_LABELS[role], ownChampion: ownChampion?.name || null, enemyChampion: enemyChampion?.name || null, priority: 'Pendiente', score: 0, explanation: 'Falta uno de los dos picks para comparar este emparejamiento.' };
+    }
+    const ownCounter = pairValue(counterPairs, ownId, enemyId);
+    const enemyCounter = pairValue(counterPairs, enemyId, ownId);
+    let score = (ownCounter - enemyCounter) * 1.25;
+    score += laneProfileValue(ownChampion, role) - laneProfileValue(enemyChampion, role);
+    if (role === 'adc' || role === 'support') {
+      const ownAdc = ownRolePicks?.adc;
+      const ownSupport = ownRolePicks?.support;
+      const enemyAdc = enemyRolePicks?.adc;
+      const enemySupport = enemyRolePicks?.support;
+      if (ownAdc && ownSupport && ownId === ownAdc) score += pairValue(synergyPairs, ownAdc, ownSupport) * 0.18;
+      if (ownAdc && ownSupport && ownId === ownSupport) score += pairValue(synergyPairs, ownAdc, ownSupport) * 0.18;
+      if (enemyAdc && enemySupport && enemyId === enemyAdc) score -= pairValue(synergyPairs, enemyAdc, enemySupport) * 0.18;
+      if (enemyAdc && enemySupport && enemyId === enemySupport) score -= pairValue(synergyPairs, enemyAdc, enemySupport) * 0.18;
+    }
+    const priority = score >= 1.8 ? 'Prioridad VK' : score <= -1.8 ? 'Prioridad rival' : 'Emparejamiento disputado';
+    let explanation = 'No hay un counter directo suficientemente fuerte en los datos; la prioridad dependerá de oleadas, ejecución, visión y apoyo del jungla.';
+    if (ownCounter > enemyCounter) explanation = `${ownChampion.name} tiene una respuesta favorable registrada contra ${enemyChampion.name}. Debe convertirla en control de oleada y rotación.`;
+    else if (enemyCounter > ownCounter) explanation = `${enemyChampion.name} tiene una respuesta favorable registrada contra ${ownChampion.name}. Evita intercambios repetidos sin apoyo.`;
+    else if (score > 0.7) explanation = `El perfil de ${ownChampion.name} aporta más presión potencial en esta posición; confirma la prioridad controlando la oleada.`;
+    else if (score < -0.7) explanation = `El perfil de ${enemyChampion.name} aporta más presión potencial; evita ceder tempo y pide cobertura si la oleada queda expuesta.`;
+    return { role, label: ROLE_PRIORITY_LABELS[role], ownChampion: ownChampion.name, enemyChampion: enemyChampion.name, priority, score: Number(score.toFixed(2)), ownCounter, enemyCounter, explanation };
+  });
+}
+
+function weightedCompositionProfile(stats) {
+  return (stats.frontline * 0.62) + (stats.engage * 0.72) + (stats.cc * 0.58) +
+    (stats.peel * 0.66) + (stats.poke * 0.52) + (stats.antiTank * 0.62) +
+    (stats.scaling * 0.48) + (stats.dive * 0.48) + (stats.waveclear * 0.42);
+}
+
+export function estimateDraftAdvantage(ownStats, enemyStats, ownIds, enemyIds, championMap, counterPairs = [], synergyPairs = [], lanePriority = []) {
+  const ownSynergy = ownIds.reduce((sum, id, index) => sum + ownIds.slice(index + 1).reduce((pairSum, other) => pairSum + Math.max(pairValue(synergyPairs, id, other), pairValue(synergyPairs, other, id)), 0), 0);
+  const enemySynergy = enemyIds.reduce((sum, id, index) => sum + enemyIds.slice(index + 1).reduce((pairSum, other) => pairSum + Math.max(pairValue(synergyPairs, id, other), pairValue(synergyPairs, other, id)), 0), 0);
+  const ownCounters = ownIds.reduce((sum, ownId) => sum + enemyIds.reduce((inner, enemyId) => inner + pairValue(counterPairs, ownId, enemyId), 0), 0);
+  const enemyCounters = enemyIds.reduce((sum, enemyId) => sum + ownIds.reduce((inner, ownId) => inner + pairValue(counterPairs, enemyId, ownId), 0), 0);
+  const laneEdge = lanePriority.reduce((sum, lane) => sum + lane.score, 0);
+  const rawDifference = weightedCompositionProfile(ownStats) - weightedCompositionProfile(enemyStats) +
+    (ownSynergy - enemySynergy) * 0.42 + (ownCounters - enemyCounters) * 0.48 + laneEdge * 0.35;
+  const ownEstimate = Math.max(38, Math.min(62, Math.round(50 + rawDifference * 0.32)));
+  return {
+    own: ownEstimate,
+    enemy: 100 - ownEstimate,
+    rawDifference: Number(rawDifference.toFixed(2)),
+    favored: ownEstimate >= 53 ? 'VK SinADC' : ownEstimate <= 47 ? 'Rival' : 'Draft parejo',
+    confidence: Math.abs(rawDifference) >= 12 ? 'moderada' : 'baja',
+    label: 'Estimación heurística de draft; no representa win rate histórico ni una predicción del resultado.',
+  };
+}
+
+function ownCountComplete(ownIds, enemyIds) { return ownIds.length === 5 && enemyIds.length === 5; }
+
+export function compareCompositions(ownIds, enemyIds, championMap, counterPairs = [], enemyRolePicks = {}, ownRolePicks = {}, synergyPairs = []) {
   const own = summarizeTeam(ownIds, championMap);
   const enemy = summarizeTeam(enemyIds, championMap);
   const ownStyle = classifyComposition(own, ownIds, championMap);
@@ -147,6 +229,10 @@ export function compareCompositions(ownIds, enemyIds, championMap, counterPairs 
     ['Frontline', 'frontline'], ['Iniciación', 'engage'], ['Control', 'cc'],
     ['Protección', 'peel'], ['Poke', 'poke'], ['Anti-tanque', 'antiTank'], ['Escalado', 'scaling'],
   ].map(([label, key]) => ({ label, key, own: own[key], enemy: enemy[key] }));
+  const lanePriority = analyzeLanePriority(ownRolePicks, enemyRolePicks, championMap, counterPairs, synergyPairs);
+  const draftAdvantage = ownCountComplete(ownIds, enemyIds)
+    ? estimateDraftAdvantage(own, enemy, ownIds, enemyIds, championMap, counterPairs, synergyPairs, lanePriority)
+    : null;
   const earlyPlan = own.scaling >= 6 && enemy.scaling < 5
     ? 'Juega los primeros minutos sin regalar eliminaciones. Asegura oleadas y experiencia; acepta intercambiar un objetivo menor si el rival fuerza una pelea antes de tus picos.'
     : own.dive >= 4 || own.engage >= 5
@@ -174,7 +260,7 @@ export function compareCompositions(ownIds, enemyIds, championMap, counterPairs 
             : 'Define una señal única de entrada. Mantén la formación, respeta los cooldowns de control enemigos y pelea alrededor de la condición de victoria seleccionada.';
   return {
     own, enemy, ownStyle, enemyStyle, edges: edges.slice(0, 4), actions: actions.slice(0, 5),
-    focus, metrics, earlyPlan, objectivePlan, fightPlan, ownCount: ownIds.length, enemyCount: enemyIds.length,
+    focus, metrics, earlyPlan, objectivePlan, fightPlan, lanePriority, draftAdvantage, ownCount: ownIds.length, enemyCount: enemyIds.length,
     draftStatus: enemyIds.length < 5 ? 'Lectura provisional: faltan picks del rival.' : 'Composición rival completa: lectura de matchup disponible.',
   };
 }

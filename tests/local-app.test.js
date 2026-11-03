@@ -64,7 +64,8 @@ test('el analizador compara ambos equipos y entrega planes por fases', () => {
   const engine = read('assets/js/draft-intel.js');
   assert.match(html, /id="matchup-analysis"/);
   assert.match(app, /function renderMatchupAnalysis\(\)/);
-  assert.match(app, /compareCompositions\(ownIds, enemyIds/);
+  assert.match(app, /compareCompositions\(/);
+  assert.match(app, /state\.picks\[enemy\], state\.picks\[team\], SYNERGIES/);
   assert.match(engine, /earlyPlan/);
   assert.match(engine, /objectivePlan/);
   assert.match(engine, /fightPlan/);
@@ -83,6 +84,7 @@ test('el diseño incluye animaciones y retratos de campeones con fallback', () =
   assert.match(app, /ddragon\.leagueoflegends\.com/);
   assert.match(vercel, /ddragon\.leagueoflegends\.com/);
   assert.match(sw, /draft-intel\.js/);
+  assert.match(sw, /series\.js/);
 });
 
 test('el lado azul cierra en B5 y el lado rojo conserva el counterpick R5', () => {
@@ -103,4 +105,32 @@ test('la comparativa muestra atributos de ambos equipos y respeta sus lados', ()
   assert.match(app, /const ownTone = team === 'blue' \? 'blue' : 'red'/);
   assert.match(css, /\.comparison-grid/);
   assert.match(css, /\.compare-meter\.enemy/);
+});
+
+
+test('el tablero Fearless crea games BO1/BO3/BO5 y conserva bloqueos globales de picks', () => {
+  const html = read('index.html');
+  const app = read('assets/js/app.js');
+  const series = read('assets/js/series.js');
+  assert.match(html, /id=\"series-games\"/);
+  assert.match(html, /id=\"finish-game-btn\"/);
+  assert.match(html, /id=\"new-series-btn\"/);
+  assert.match(app, /getSeriesLockedChampions/);
+  assert.match(app, /getSeriesDisplayLocks/);
+  assert.match(app, /function finishCurrentGame\(\)/);
+  assert.match(app, /function startNewSeries\(/);
+  assert.match(series, /FORMAT_GAME_COUNTS = Object.freeze\(\{ BO1: 1, BO3: 3, BO5: 5 \}\)/);
+  assert.match(series, /function canAccessSeriesGame/);
+});
+
+test('los informes del coach se muestran debajo del draft con tipografía ampliada', () => {
+  const html = read('index.html');
+  const css = read('assets/css/styles.css');
+  assert.match(html, /LECTURA DEL COACH/);
+  assert.match(html, /SCOUTING AUTOMÁTICO/);
+  assert.match(html, /PLAN DE PARTIDA/);
+  assert.match(html, /LECTURA Y AJUSTES/);
+  assert.match(css, /report-card \.section-heading h2\{font-size:28px\}/);
+  assert.match(css, /\.game-phase p\{font-size:14px/);
+  assert.match(css, /@media\(max-width:700px\)\{\.reports-grid\{grid-template-columns:1fr\}/);
 });

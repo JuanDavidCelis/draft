@@ -91,3 +91,32 @@ test('el recomendador valora sinergia de protección para Kog\'Maw', async () =>
   });
   assert.ok(score('braum') > score('leona'));
 });
+
+test('el scouting marca prioridad por línea y reconoce el counterpick favorable', () => {
+  const ownRolePicks = { baron: 'fiora', jungle: 'lillia', mid: 'brand', adc: 'vayne', support: 'braum' };
+  const enemyRolePicks = { baron: 'sion', jungle: 'rammus', mid: 'galio', adc: 'kog-maw', support: 'ornn' };
+  const report = compareCompositions(
+    Object.values(ownRolePicks),
+    Object.values(enemyRolePicks),
+    map,
+    COUNTERS,
+    enemyRolePicks,
+    ownRolePicks,
+    [],
+  );
+  const baron = report.lanePriority.find(lane => lane.role === 'baron');
+  assert.equal(baron.priority, 'Prioridad VK');
+  assert.match(baron.explanation, /Fiora.*Sion/);
+});
+
+test('el índice comparativo solo aparece con dos composiciones completas y no se presenta como win rate', () => {
+  const fullOwn = ['fiora', 'lillia', 'brand', 'vayne', 'braum'];
+  const fullEnemy = ['sion', 'rammus', 'galio', 'kog-maw', 'ornn'];
+  const complete = compareCompositions(fullOwn, fullEnemy, map, COUNTERS);
+  assert.ok(complete.draftAdvantage);
+  assert.equal(complete.draftAdvantage.own + complete.draftAdvantage.enemy, 100);
+  assert.match(complete.draftAdvantage.label, /no representa win rate histórico/);
+
+  const partial = compareCompositions(fullOwn.slice(0, 4), fullEnemy, map, COUNTERS);
+  assert.equal(partial.draftAdvantage, null);
+});
