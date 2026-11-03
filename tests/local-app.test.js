@@ -1,0 +1,106 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync, existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+const root = resolve(import.meta.dirname, '..');
+const read = file => readFileSync(resolve(root, file), 'utf8');
+
+test('la aplicación incluye importación y exportación de respaldos locales', () => {
+  const html = read('index.html');
+  const app = read('assets/js/app.js');
+  assert.match(html, /id="import-btn"/);
+  assert.match(html, /id="export-btn"/);
+  assert.match(app, /function validImportedState/);
+  assert.match(app, /async function importBackup/);
+  assert.match(app, /function exportDraft/);
+});
+
+test('el orden de picks permite asignar posiciones a cada turno', () => {
+  const app = read('assets/js/app.js');
+  assert.match(app, /PICK_TURNS = \{ blue: \[1, 4, 5, 8, 9\], red: \[2, 3, 6, 7, 10\] \}/);
+  assert.match(app, /data-slot-role/);
+  assert.match(app, /function setSlotRole/);
+});
+
+test('Champion Pool permite editar CORE y alternativas', () => {
+  const app = read('assets/js/app.js');
+  assert.match(app, /function setPoolTier/);
+  assert.match(app, /data-pool-tier/);
+  assert.match(app, /'CORE', 'ALT 1', 'ALT 2', 'SITUACIONAL'/);
+});
+
+test('la PWA tiene manifest, service worker e iconos locales', () => {
+  const html = read('index.html');
+  const manifest = JSON.parse(read('manifest.webmanifest'));
+  const sw = read('sw.js');
+  assert.match(html, /rel="manifest"/);
+  assert.match(sw, /addAll\(APP_SHELL\)/);
+  for (const icon of manifest.icons) assert.ok(existsSync(resolve(root, icon.src)), icon.src);
+});
+
+test('no depende de fuentes remotas ni de Supabase', () => {
+  const html = read('index.html');
+  const app = read('assets/js/app.js');
+  assert.doesNotMatch(html, /fonts\.googleapis\.com|fonts\.gstatic\.com/);
+  assert.doesNotMatch(app, /supabase|createClient/i);
+  assert.match(app, /localStorage/);
+});
+
+test('el coach muestra el siguiente turno, las tres alternativas y reserva el último pick', () => {
+  const html = read('index.html');
+  const app = read('assets/js/app.js');
+  assert.match(html, /id="pick-coach-panel"/);
+  assert.match(app, /function renderPickCoach\(\)/);
+  assert.match(app, /getNextPickSlot\(\)/);
+  assert.match(app, /getLastPickSlot\(\)/);
+  assert.match(app, /ÚLTIMO PICK · COUNTERPICK/);
+  assert.match(app, /getRoleCandidates\(next\.role, 3\)/);
+});
+
+test('el analizador compara ambos equipos y entrega planes por fases', () => {
+  const html = read('index.html');
+  const app = read('assets/js/app.js');
+  const engine = read('assets/js/draft-intel.js');
+  assert.match(html, /id="matchup-analysis"/);
+  assert.match(app, /function renderMatchupAnalysis\(\)/);
+  assert.match(app, /compareCompositions\(ownIds, enemyIds/);
+  assert.match(engine, /earlyPlan/);
+  assert.match(engine, /objectivePlan/);
+  assert.match(engine, /fightPlan/);
+});
+
+test('el diseño incluye animaciones y retratos de campeones con fallback', () => {
+  const html = read('index.html');
+  const app = read('assets/js/app.js');
+  const css = read('assets/css/styles.css');
+  const sw = read('sw.js');
+  const vercel = read('vercel.json');
+  assert.match(css, /@keyframes vdl-fade-up/);
+  assert.match(css, /@keyframes vdl-pick-pop/);
+  assert.match(app, /function championAvatar\(/);
+  assert.match(app, /function bindChampionImages\(/);
+  assert.match(app, /ddragon\.leagueoflegends\.com/);
+  assert.match(vercel, /ddragon\.leagueoflegends\.com/);
+  assert.match(sw, /draft-intel\.js/);
+});
+
+test('el lado azul cierra en B5 y el lado rojo conserva el counterpick R5', () => {
+  const app = read('assets/js/app.js');
+  assert.match(app, /const isTrueCounterpick = isFinalOwnPick && team === 'red'/);
+  assert.match(app, /ÚLTIMA SELECCIÓN · CIERRE DE DRAFT/);
+  assert.match(app, /ÚLTIMO PICK · COUNTERPICK/);
+  assert.match(app, /RESERVA DE CIERRE · B5/);
+  assert.match(app, /RESERVA DE COUNTERPICK · R5/);
+});
+
+test('la comparativa muestra atributos de ambos equipos y respeta sus lados', () => {
+  const app = read('assets/js/app.js');
+  const engine = read('assets/js/draft-intel.js');
+  const css = read('assets/css/styles.css');
+  assert.match(engine, /const metrics = \[/);
+  assert.match(app, /report\.metrics\.map/);
+  assert.match(app, /const ownTone = team === 'blue' \? 'blue' : 'red'/);
+  assert.match(css, /\.comparison-grid/);
+  assert.match(css, /\.compare-meter\.enemy/);
+});

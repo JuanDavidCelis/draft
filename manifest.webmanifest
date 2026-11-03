@@ -1,0 +1,27 @@
+{
+  "id": ".",
+  "name": "VoidKings Draft Lab",
+  "short_name": "VoidKings",
+  "description": "VK SinADC — asistente competitivo de draft, counterpick y análisis de matchup para Wild Rift.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#090d16",
+  "theme_color": "#100d1d",
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090d16">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="assets/icons/voidkings-logo.svg">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <meta name="description" content="VOIDKINGS DRAFT LAB — asistente de draft competitivo para Wild Rift de VK SinADC.">
+  <title>VOIDKINGS DRAFT LAB · VK SinADC</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body class="auth-locked">
+  <section id="auth-gate" class="auth-gate" aria-labelledby="auth-title">
+    <div class="auth-card">
+      <div class="auth-mark">VK</div>
+      <div class="auth-eyebrow">VK SinADC · PRIVATE COMPETITIVE WORKSPACE</div>
+      <h1 id="auth-title">VOIDKINGS <em>DRAFT LAB</em></h1>
+      <p>Acceso privado para preparar los drafts del equipo.</p>
+      <form id="login-form" class="auth-form">
+        <label for="access-password">CONTRASEÑA DE ACCESO</label>
+        <input id="access-password" name="password" type="password" autocomplete="current-password" placeholder="Introduce tu contraseña" required minlength="1">
+        <button id="login-submit" class="button button-primary" type="submit">Entrar al Draft Lab <span>→</span></button>
+      </form>
+      <div id="auth-message" class="auth-message" role="alert" aria-live="polite">La sesión se protegerá mediante una cookie segura.</div>
+      <div class="auth-foot"><span></span> VK SinADC · VERCEL PRIVATE STORAGE · WILD RIFT 7.3D</div>
+    </div>
+  </section>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#draft" aria-label="VoidKings Draft Lab inicio">
+        <span class="brand-mark">VK</span>
+        <span class="brand-copy"><strong>VOIDKINGS</strong><small>VK SinADC · DRAFT LAB</small></span>
+      </a>
+      <div class="sidebar-label">WORKSPACE</div>
+      <nav class="main-nav" aria-label="Navegación principal">
+        <button class="nav-item active" data-view="draft"><span class="nav-icon">▦</span><span>Sala de draft</span><kbd>01</kbd></button>
+        <button class="nav-item" data-view="pool"><span class="nav-icon">◈</span><span>Champion pool</span><kbd>02</kbd></button>
+        <button class="nav-item" data-view="library"><span class="nav-icon">▤</span><span>Composiciones</span><kbd>03</kbd></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="patch-card">
+          <span class="live-dot"></span>
+          <div><small>VERSIÓN ACTIVA</small><strong>Wild Rift 7.3d</strong></div>
+        </div>
+        <div class="sidebar-foot">COMPETITIVE TOOLKIT<br><span>VOIDKINGS · VK SinADC</span></div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="mobile-brand"><span class="brand-mark">VK</span><strong>VOIDKINGS <span>DRAFT LAB</span></strong></div>
+        <div class="breadcrumb"><span>WORKSPACE</span><b>/</b><strong id="view-breadcrumb">SALA DE DRAFT</strong></div>
+        <div class="topbar-right"><span class="status-pill" id="cloud-status"><i></i> CONECTANDO A VERCEL</span><button id="logout-btn" class="icon-button" title="Cerrar sesión" aria-label="Cerrar sesión">⇥</button><button id="import-btn" class="icon-button" title="Importar respaldo JSON" aria-label="Importar respaldo JSON">⇧</button><button id="export-btn" class="icon-button" title="Exportar respaldo" aria-label="Exportar respaldo">⇩</button><input id="import-file" type="file" accept="application/json,.json" hidden></div>
+      </header>
+
+      <section id="view-draft" class="view active">
+        <div class="page-heading">
+          <div><div class="eyebrow">COMPETITIVE DRAFT ROOM <span>•</span> 7.3D</div><h1>Construye tu <em>draft.</em></h1><p>Configura el lado, registra bans y picks. El analizador adaptará las recomendaciones a cada selección.</p></div>
+          <div class="heading-actions"><button class="button button-ghost" id="reset-btn">↺ <span>Reiniciar</span></button><button class="button button-primary" id="recommend-btn">✦ <span>Generar recomendaciones</span></button></div>
+        </div>
+
+        <div class="setup-strip panel">
+          <div class="setup-group"><label>LADO DE VK SinADC</label><div class="segmented" id="side-switch"><button data-side="blue" class="selected blue-select"><span>◆</span> FIRST PICK</button><button data-side="red"><span>◆</span> LAST PICK</button></div></div>
+          <div class="setup-divider"></div>
+          <div class="setup-group"><label>FORMATO DE SERIE</label><select id="format-select" class="dark-select"><option>BO1</option><option selected>BO3</option><option>BO5</option></select></div>
+          <div class="setup-divider"></div>
+          <div class="setup-group setup-note"><span class="note-icon">ⓘ</span><div><strong>Orden competitivo</strong><small>Asigna la línea a cada turno; el número de pick se calcula según el lado.</small></div></div>
+          <div class="setup-spacer"></div>
+          <div class="draft-count"><strong id="pick-count">0/10</strong><small>PICKS REGISTRADOS</small></div>
+        </div>
+
+        <div class="draft-layout">
+          <div class="draft-main-column">
+            <section class="panel bans-panel">
+              <div class="section-heading"><div><span class="section-kicker">FASE DE VETO</span><h2>Ban phase</h2></div><span class="muted-label">5 BANS POR EQUIPO</span></div>
+              <div class="ban-grid">
+                <div class="ban-side blue-side"><div class="side-title"><span class="side-symbol">◆</span><strong><span id="blue-ban-name">VK SinADC</span> <small id="blue-ban-label">BLUE SIDE</small></strong></div><div class="ban-slots" id="blue-bans"></div></div>
+                <div class="ban-side red-side"><div class="side-title"><span class="side-symbol">◆</span><strong><span id="red-ban-name">RIVAL</span> <small id="red-ban-label">RED SIDE</small></strong></div><div class="ban-slots" id="red-bans"></div></div>
+              </div>
+            </section>
+
+            <section class="panel picks-panel">
+              <div class="section-heading"><div><span class="section-kicker">SELECCIÓN DE CAMPEONES</span><h2>Draft board</h2></div><div class="legend"><span><i class="legend-blue"></i> BLUE</span><span><i class="legend-red"></i> RED</span></div></div>
+              <div class="team-board">
+                <div class="team-column blue-column"><div class="team-header"><div><span class="team-symbol">◆</span><strong id="blue-team-name">VK SinADC</strong></div><span id="blue-team-label">BLUE SIDE</span></div><div id="blue-picks" class="pick-list"></div></div>
+                <div class="board-divider"><span>VS</span></div>
+                <div class="team-column red-column"><div class="team-header"><div><span class="team-symbol">◆</span><strong id="red-team-name">OPPONENT</strong></div><span id="red-team-label">RED SIDE</span></div><div id="red-picks" class="pick-list"></div></div>
+              </div>
+              <div class="board-footer"><span>Orden clásico: <b>B1 → R1 → R2 → B2 → B3 → R3 → R4 → B4 → B5 → R5</b></span><span>En cada turno puedes cambiar la línea y elegir el campeón.</span></div>
+            </section>
+
+            <section class="panel recommendation-panel" id="recommendations-section">
+              <div class="section-heading"><div><span class="section-kicker">ASISTENTE DE COACH</span><h2>Recomendaciones dinámicas</h2></div><span class="ai-label">✦ DRAFT ANALYZER</span></div>
+              <div id="pick-coach-panel" class="pick-coach-panel"></div>
+              <div id="role-recommendations" class="role-recommendations"></div>
+              <div class="recommend-divider"><span>COMPOSICIONES POSIBLES</span></div>
+              <div id="build-recommendations" class="build-grid"></div>
+            </section>
+          </div>
+
+          <aside class="draft-side-column">
+            <section class="panel analysis-panel">
+              <div class="section-heading compact"><div><span class="section-kicker">LECTURA DEL COACH</span><h2>Team analyzer</h2></div><span class="analysis-orb">✦</span></div>
+              <div id="analysis-content"></div>
+            </section>
+            <section class="panel matchup-panel">
+              <div class="section-heading compact"><div><span class="section-kicker">SCOUTING AUTOMÁTICO</span><h2>Matchup report</h2></div><span class="analysis-orb">VS</span></div>
+              <div id="matchup-analysis"></div>
+            </section>
+            <section class="panel wincon-panel"><span class="section-kicker">CONDICIÓN DE VICTORIA</span><h3 id="wincon-title">Esperando selecciones</h3><p id="wincon-copy">Registra tus campeones para identificar la identidad y las necesidades de tu composición.</p></section>
+            <section class="panel quick-actions"><div class="section-heading compact"><div><span class="section-kicker">UTILIDADES</span><h2>Draft tools</h2></div></div><button class="tool-button" id="fill-template-btn"><span>▣</span><div><strong>Cargar composición guardada</strong><small>Aplicar una plantilla al lado propio</small></div><b>→</b></button><button class="tool-button" id="save-template-btn"><span>＋</span><div><strong>Guardar mi composición</strong><small>Guardar la plantilla en Vercel</small></div><b>→</b></button><button class="tool-button" id="clear-own-btn"><span>⌫</span><div><strong>Limpiar mis picks</strong><small>Mantener los bans y el rival</small></div><b>→</b></button></section>
+            <div class="disclaimer">Las puntuaciones son heurísticas iniciales del equipo, no estadísticas oficiales ni predicciones de victoria. Ajusta prioridades después de scrims.</div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="view-pool" class="view">
+        <div class="page-heading"><div><div class="eyebrow">ROSTER MANAGEMENT <span>•</span> TEAM POOL</div><h1>Champion <em>pool.</em></h1><p>CORE y dos alternativas prioritarias por posición. El resto del catálogo aparece como selección situacional.</p></div><div class="heading-actions"><span class="pool-stat" id="pool-count">0 CAMPEONES</span></div></div>
+        <div class="pool-toolbar panel"><div class="role-filter" id="pool-role-filter"><button class="selected" data-role="all">TODOS</button><button data-role="baron">BARÓN</button><button data-role="jungle">JUNGLA</button><button data-role="mid">MID</button><button data-role="adc">ADC</button><button data-role="support">SOPORTE</button></div><input id="pool-search" class="search-input" type="search" placeholder="Buscar campeón..." autocomplete="off"></div>
+        <div id="pool-content" class="pool-content"></div>
+      </section>
+
+      <section id="view-library" class="view">
+        <div class="page-heading"><div><div class="eyebrow">TEAM STRATEGY <span>•</span> SAVED BUILDS</div><h1>Composition <em>library.</em></h1><p>Plantillas iniciales del playbook de VoidKings · VK SinADC. Puedes cargarlas en la sala y modificarlas durante el draft.</p></div><div class="heading-actions"><span class="pool-stat" id="template-count">7 PLANTILLAS</span></div></div>
+        <div id="template-content" class="template-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="picker-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="picker-title">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-card"><div class="modal-head"><div><span class="section-kicker">CHAMPION SELECT</span><h2 id="picker-title">Seleccionar campeón</h2><p id="picker-subtitle">Elige un campeón disponible para esta posición.</p></div><button class="close-button" data-close-modal aria-label="Cerrar">×</button></div><div class="picker-controls"><input id="champion-search" class="search-input" type="search" placeholder="Buscar campeón..." autocomplete="off"><div id="picker-filters" class="picker-filters"><button class="selected" data-picker-filter="role">Posición compatible</button><button data-picker-filter="all">Todo el pool</button></div></div><div id="champion-grid" class="champion-grid"></div></div>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="assets/js/app.js"></script>
+</body>
+</html>
