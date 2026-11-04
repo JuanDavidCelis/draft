@@ -715,6 +715,7 @@ function candidateReasons(entry, role, currentIds, enemyIds) {
   if (synergy[0]) reasons.push(`Sinergia con ${championName(synergy[0].id)}`);
   const patch = PATCH_73D_CONTEXT[champ.id];
   if (patch?.kind === 'buff') reasons.push('Recibió mejora en 7.3d');
+  if (patch?.kind === 'nerf') reasons.push('Recibió ajuste negativo en 7.3d');
   if (!reasons.length) reasons.push(entry.tier === 'CORE' ? 'Prioridad principal del Champion Pool' : `${roleLabel(role)} disponible en el pool`);
   return reasons.slice(0, 2);
 }
@@ -1069,19 +1070,26 @@ function selectChampion(championId) {
   const { type, team, role, index } = pickerTarget;
   if (currentGameIsCompleted()) return notify('Este game ya está finalizado.');
   const lockedInSeries = seriesLockedMap();
-  if (lockedInSeries.has(championId)) return notify(`${championName(championId)} está bloqueado por Fearless Draft desde Game ${lockedInSeries.get(championId)}.`);
+  if (lockedInSeries.has(championId)) {
+    const game = lockedInSeries.get(championId);
+    if (type === 'pick') return notify(`${championName(championId)} está bloqueado por Fearless Draft desde Game ${game}.`);
+    return notify(`${championName(championId)} ya está retirado por Fearless y no puede volver a banearse.`);
+  }
   if (allBanIds().includes(championId) && type === 'pick') return notify('Ese campeón está baneado en este game.');
-  if (lockedInSeries.has(championId) && type === 'ban') return notify('Ese campeón ya está retirado por Fearless y no puede volver a banearse.');
   if (allPickIds().includes(championId) && type === 'ban') return notify('No puedes banear un campeón que ya fue seleccionado.');
   if (type === 'pick') {
     const alreadyUsed = allPickIds().includes(championId) && state.picks[team][role] !== championId;
     if (alreadyUsed) return notify('Ese campeón ya fue seleccionado.');
-    if (pickerFilter === 'role' && !getChampion(championId)?.roles.includes(role)) return notify('El campeón no está asignado a esa posición en el catálogo. Usa “Todo el pool” para un flex pick.');
+    if (pickerFilter === 'role' && !getChampion(championId)?.roles.includes(role)) return notify('El campeón no está asignado a esa posición en el catálogo. Usa "Todo el pool" para un flex pick.');
     state.picks[team][role] = championId;
   } else {
     if (allBanIds().includes(championId)) return notify('Ese campeón ya está baneado.');
     state.bans[team][index] = championId;
   }
+  closePicker();
+  renderDraft();
+  notify(`${championName(championId)} ${type === 'pick' ? 'seleccionado' : 'baneado'}.`);
+}
   closePicker();
   renderDraft();
   notify(`${championName(championId)} ${type === 'pick' ? 'seleccionado' : 'baneado'}.`);
@@ -1183,7 +1191,7 @@ function saveCurrentTemplate() {
   const suggestedName = `Mi composición ${state.customTemplates.length + 1}`;
   const name = prompt('Nombre para esta composición:', suggestedName)?.trim();
   if (!name) return;
-  const id = `custom-${Date.now()}`;
+  const id = `custom-${crypto.randomUUID()}`;
   state.customTemplates.push({
     id,
     name: name.slice(0, 48),
