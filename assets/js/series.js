@@ -43,6 +43,24 @@ export function cloneGame(game, roleIds, fallbackSide = 'blue') {
   return next;
 }
 
+
+/** Persist the current editable game snapshot without carrying bans into another game. */
+export function saveSeriesGameSnapshot(series, gameNumber, snapshot, roleIds) {
+  const index = gameNumber - 1;
+  if (!series || index < 0 || index >= series.games.length || series.games[index]?.completed) return false;
+  series.games[index] = cloneGame({ ...snapshot, completed: false, completedAt: null }, roleIds, snapshot?.side);
+  return true;
+}
+
+/** Close a complete game and freeze its ten picks for later Fearless games. */
+export function completeSeriesGame(series, gameNumber, snapshot, roleIds, completedAt = new Date().toISOString()) {
+  const index = gameNumber - 1;
+  if (!series || index < 0 || index >= series.games.length || !canCompleteGame(snapshot?.picks, roleIds)) return false;
+  const completed = cloneGame({ ...snapshot, completed: true, completedAt }, roleIds, snapshot?.side);
+  series.games[index] = completed;
+  return true;
+}
+
 export function normalizeSeriesState(raw, format, roleIds, side = 'blue', fallbackGame = null) {
   const normalizedFormat = FORMAT_GAME_COUNTS[format] ? format : 'BO3';
   const count = gameCountForFormat(normalizedFormat);
@@ -149,4 +167,8 @@ export function canCompleteGame(picks, roleIds) {
 
 export function countGamePicks(picks, roleIds) {
   return ['blue', 'red'].reduce((sum, team) => sum + roleIds.filter(role => Boolean(picks?.[team]?.[role])).length, 0);
+}
+
+export function countGameBans(game) {
+  return ['blue', 'red'].reduce((sum, team) => sum + (game?.bans?.[team] || []).filter(Boolean).length, 0);
 }

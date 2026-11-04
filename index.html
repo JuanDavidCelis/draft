@@ -60,7 +60,7 @@
 
       <section id="view-draft" class="view active">
         <div class="page-heading">
-          <div><div class="eyebrow">VOIDKINGS COMPETITIVE DRAFT ROOM <span>•</span> 7.3D</div><h1>Construye tu <em>draft.</em></h1><p>Selecciona, compara y adapta la composición. El coach explica el mejor pick disponible y cómo convertir el draft en una condición de victoria.</p></div>
+          <div><div class="eyebrow">COMPETITIVE DRAFT ROOM <span>•</span> 7.3D</div><h1>Construye tu <em>draft.</em></h1><p>Configura el lado, registra bans y picks. El analizador adaptará las recomendaciones a cada selección.</p></div>
           <div class="heading-actions"><button class="button button-ghost" id="reset-btn">↺ <span>Reiniciar</span></button><button class="button button-primary" id="recommend-btn">✦ <span>Generar recomendaciones</span></button></div>
         </div>
 
@@ -76,17 +76,19 @@
 
         <section class="panel series-panel" aria-label="Gestión de serie Fearless">
           <div class="series-head">
-            <div class="series-title"><span class="section-kicker">TORNEO · FEARLESS DRAFT</span><h2 id="series-title">BO3 · GAME 1 DE 3</h2><p>Los campeones elegidos por cualquiera de los dos equipos quedarán bloqueados para los siguientes games de esta serie.</p></div>
+            <div class="series-title"><span class="section-kicker">TORNEO · FEARLESS DRAFT <b class="release-chip">DRAFT LAB v0.8.1</b></span><h2 id="series-title">BO3 · GAME 1 DE 3</h2><p>Cada game tiene sus propios 5 bans por equipo. Al cerrar un game, sus 10 picks quedan bloqueados para el resto de la serie; los bans manuales no se arrastran.</p></div>
             <div class="series-actions"><span class="series-lock-count" id="series-lock-count">0 CAMPEONES BLOQUEADOS</span><button id="finish-game-btn" class="button button-primary" type="button">Finalizar Game 1</button><button id="next-game-btn" class="button button-ghost" type="button" hidden>Ir a Game 2 →</button><button id="new-series-btn" class="button button-ghost" type="button">＋ Nueva serie</button></div>
           </div>
           <div id="series-games" class="series-games" role="tablist" aria-label="Games de la serie"></div>
+          <div class="series-rule-note"><strong>Regla Fearless:</strong> completa los 10 picks y pulsa “Finalizar y bloquear picks”, o avanza al siguiente Game; el sistema cerrará la partida automáticamente. Los bans manuales se guardan por separado en cada Game: al abrir uno nuevo, sus diez espacios de veto empiezan vacíos. Los diez campeones elegidos en games anteriores quedan bloqueados para ambos equipos. </div>
           <div id="series-locks" class="series-locks" aria-live="polite"></div>
         </section>
 
         <div class="draft-layout">
           <div class="draft-main-column">
             <section class="panel bans-panel">
-              <div class="section-heading"><div><span class="section-kicker">FASE DE VETO</span><h2>Ban phase</h2></div><span class="muted-label">5 BANS POR EQUIPO</span></div>
+              <div class="section-heading"><div><span class="section-kicker">FASE DE VETO</span><h2>Ban phase <span id="ban-game-label" class="game-context-tag">GAME 1</span></h2><p class="ban-phase-help">Veto manual exclusivo de esta partida. Los bans de otros games no se copian.</p></div><div class="ban-heading-meta"><span id="game-ban-count" class="game-ban-count">0/10 BANS REGISTRADOS EN GAME 1</span><span class="muted-label">5 BANS POR EQUIPO · GAME ACTUAL</span></div></div>
+              <div id="fearless-ban-strip" class="fearless-ban-strip" hidden aria-live="polite"></div>
               <div class="ban-grid">
                 <div class="ban-side blue-side"><div class="side-title"><span class="side-symbol">◆</span><strong><span id="blue-ban-name">VK SinADC</span> <small id="blue-ban-label">BLUE SIDE</small></strong></div><div class="ban-slots" id="blue-bans"></div></div>
                 <div class="ban-side red-side"><div class="side-title"><span class="side-symbol">◆</span><strong><span id="red-ban-name">RIVAL</span> <small id="red-ban-label">RED SIDE</small></strong></div><div class="ban-slots" id="red-bans"></div></div>
@@ -104,14 +106,12 @@
             </section>
 
             <section class="panel recommendation-panel" id="recommendations-section">
-              <div class="section-heading"><div><span class="section-kicker">ASISTENTE DE COACH · PICK INTELLIGENCE</span><h2>Recomendaciones dinámicas</h2><p class="section-subtitle">CORE y dos alternativas evaluadas por matchup, sinergia y necesidades de composición.</p></div><span class="ai-label">✦ DRAFT ANALYZER</span></div>
+              <div class="section-heading"><div><span class="section-kicker">ASISTENTE DE COACH</span><h2>Recomendaciones dinámicas</h2></div><span class="ai-label">✦ DRAFT ANALYZER</span></div>
               <div id="pick-coach-panel" class="pick-coach-panel"></div>
               <div id="role-recommendations" class="role-recommendations"></div>
               <div class="recommend-divider"><span>COMPOSICIONES POSIBLES</span></div>
               <div id="build-recommendations" class="build-grid"></div>
             </section>
-          </div>
-        </div>
 
         <section class="coach-reports" aria-label="Informes competitivos del coach">
           <div class="reports-heading"><div><span class="section-kicker">INTELLIGENCE CENTER · VOIDKINGS</span><h2>Informes del <em>coach.</em></h2><p>Comparativa completa de composiciones, prioridad por línea y plan de ejecución.</p></div></div>
@@ -122,7 +122,7 @@
               <div class="wincon-inline"><span class="section-kicker">CONDICIÓN DE VICTORIA</span><h3 id="wincon-title">Esperando selecciones</h3><p id="wincon-copy">Registra tus campeones para identificar la identidad y las necesidades de tu composición.</p></div>
             </section>
             <section class="panel matchup-panel report-card report-wide">
-              <div class="section-heading"><div><span class="section-kicker">SCOUTING AUTOMÁTICO</span><h2>Comparativa de composiciones</h2><p class="section-subtitle">Prioridad potencial por línea, herramientas de ambos equipos y ventaja composicional estimada.</p></div><span class="analysis-orb">VS</span></div>
+              <div class="section-heading"><div><span class="section-kicker">SCOUTING AUTOMÁTICO</span><h2>Comparativa de composiciones</h2></div><span class="analysis-orb">VS</span></div>
               <div id="matchup-analysis"></div>
             </section>
             <section class="panel report-card">
@@ -137,6 +137,8 @@
           <section class="panel quick-actions report-tools"><div class="section-heading compact"><div><span class="section-kicker">UTILIDADES</span><h2>Draft tools</h2></div></div><div class="tools-row"><button class="tool-button" id="fill-template-btn"><span>▣</span><div><strong>Cargar composición guardada</strong><small>Aplicar una plantilla al lado propio</small></div><b>→</b></button><button class="tool-button" id="save-template-btn"><span>＋</span><div><strong>Guardar mi composición</strong><small>Guardar la plantilla en Vercel</small></div><b>→</b></button><button class="tool-button" id="clear-own-btn"><span>⌫</span><div><strong>Limpiar mis picks</strong><small>Mantener los bans y el rival</small></div><b>→</b></button></div></section>
           <div class="disclaimer report-disclaimer">El balance y la prioridad por línea son estimaciones heurísticas de draft, no win rate histórico ni predicción garantizada. Valida las lecturas con scrims y conocimiento de los jugadores.</div>
         </section>
+          </div>
+        </div>
       </section>
 
       <section id="view-pool" class="view">

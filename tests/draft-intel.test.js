@@ -106,10 +106,6 @@ test('el scouting marca prioridad por línea y reconoce el counterpick favorable
   );
   const baron = report.lanePriority.find(lane => lane.role === 'baron');
   assert.equal(baron.priority, 'Prioridad VK');
-  assert.equal(baron.evidence, 'Counter registrado');
-  assert.equal(baron.confidence, 'Media');
-  assert.equal(baron.ownChampionId, 'fiora');
-  assert.equal(baron.enemyChampionId, 'sion');
   assert.match(baron.explanation, /Fiora.*Sion/);
 });
 

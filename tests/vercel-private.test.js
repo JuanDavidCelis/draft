@@ -78,5 +78,5 @@ test('la app mantiene una única fuente remota y no usa Supabase', () => {
   const pkg = JSON.parse(read('package.json'));
   assert.doesNotMatch(app, /supabase|createClient/i);
   assert.equal(pkg.dependencies['@vercel/blob'], '^2.3.1');
-  assert.equal(pkg.version, '0.7.0');
+  assert.equal(pkg.version, '0.8.1');
 });

@@ -10,6 +10,9 @@ import {
   canAccessSeriesGame,
   canCompleteGame,
   countGamePicks,
+  countGameBans,
+  saveSeriesGameSnapshot,
+  completeSeriesGame,
   normalizeSeriesState,
 } from '../assets/js/series.js';
 
@@ -137,4 +140,89 @@ test('los bans son independientes por game y no forman parte del bloqueo Fearles
   const locksForGame2 = getSeriesLockedChampions(series, 2);
   assert.equal(locksForGame2.has('teemo'), false);
   assert.equal(series.games[1].bans.blue.every(id => id === null), true);
+});
+
+
+test('cada game conserva sus propios bans manuales y no hereda los del game anterior', () => {
+  const series = createSeriesState('BO3', roles);
+  series.games[0].bans.blue[0] = 'teemo';
+  series.games[0].bans.red[0] = 'lux';
+  completeGame(series, 1,
+    ['shen', 'lee-sin', 'hwei', 'kog-maw', 'braum'],
+    ['ornn', 'amumu', 'orianna', 'vayne', 'malphite']);
+
+  // El Game 2 empieza con sus 10 huecos manuales vacíos; puede reutilizar
+  // como ban un campeón vetado en G1, siempre que no haya sido elegido.
+  assert.equal(countGameBans(series.games[1]), 0);
+  series.games[1].bans.blue[1] = 'teemo';
+  series.games[1].bans.red[2] = 'lux';
+  series.activeGame = 2;
+
+  const restored = normalizeSeriesState(series, 'BO3', roles, 'blue');
+  assert.deepEqual(restored.games[0].bans.blue[0], 'teemo');
+  assert.deepEqual(restored.games[0].bans.red[0], 'lux');
+  assert.deepEqual(restored.games[1].bans.blue, [null, 'teemo', null, null, null]);
+  assert.deepEqual(restored.games[1].bans.red, [null, null, 'lux', null, null]);
+  assert.equal(countGameBans(restored.games[1]), 2);
+  assert.equal(getSeriesLockedChampions(restored, 2).has('teemo'), false);
+  assert.equal(getSeriesLockedChampions(restored, 2).has('lux'), false);
+});
+
+
+test('los picks previos aparecen como bloqueos Fearless, pero los bans manuales no se comparten', () => {
+  const series = createSeriesState('BO5', roles);
+  series.games[0].bans.blue[0] = 'teemo';
+  completeGame(series, 1,
+    ['shen', 'lee-sin', 'hwei', 'kog-maw', 'braum'],
+    ['ornn', 'amumu', 'orianna', 'vayne', 'malphite']);
+  const locks = getSeriesDisplayLocks(series, 2);
+  assert.equal(locks.size, 10);
+  assert.equal(locks.has('shen'), true);
+  assert.equal(locks.has('teemo'), false);
+  assert.equal(countGameBans(series.games[1]), 0);
+});
+
+
+test('guardar y cerrar un game conserva sus bans únicamente en esa partida y bloquea sus diez picks', () => {
+  const series = createSeriesState('BO3', roles);
+  const game1 = {
+    side: 'blue',
+    picks: fullPicks(
+      ['shen', 'lee-sin', 'hwei', 'kog-maw', 'braum'],
+      ['ornn', 'amumu', 'orianna', 'vayne', 'malphite'],
+    ),
+    bans: { blue: ['teemo', 'lux', null, null, null], red: ['akali', null, null, null, null] },
+    slotRoles: { blue: roles, red: roles },
+  };
+  assert.equal(saveSeriesGameSnapshot(series, 1, game1, roles), true);
+  assert.equal(countGameBans(series.games[0]), 3);
+  assert.equal(countGameBans(series.games[1]), 0);
+  assert.equal(completeSeriesGame(series, 1, game1, roles, '2026-11-03T18:00:00.000Z'), true);
+  assert.equal(series.games[0].completed, true);
+  assert.equal(series.games[1].bans.blue.every(id => id === null), true);
+  assert.equal(getSeriesLockedChampions(series, 2).size, 10);
+
+  // Teemo/Lux/Akali were only manual bans in G1, not Fearless picks: G2 may ban them again.
+  const game2 = {
+    side: 'blue', picks: fullPicks(
+      ['fiora', 'jarvan-iv', 'brand', 'jinx', 'nautilus'],
+      ['camille', 'wukong', 'galio', 'xayah', 'rell'],
+    ),
+    bans: { blue: ['teemo', null, null, null, null], red: ['lux', 'akali', null, null, null] },
+    slotRoles: { blue: roles, red: roles },
+  };
+  assert.equal(saveSeriesGameSnapshot(series, 2, game2, roles), true);
+  assert.equal(countGameBans(series.games[0]), 3);
+  assert.equal(countGameBans(series.games[1]), 3);
+  assert.equal(series.games[1].bans.blue[0], 'teemo');
+  assert.equal(getSeriesLockedChampions(series, 2).has('teemo'), false);
+  assert.equal(getSeriesLockedChampions(series, 3).size, 10);
+});
+
+test('no se puede cerrar un game si faltan picks y no se modifica su estado', () => {
+  const series = createSeriesState('BO3', roles);
+  const partial = { side: 'blue', picks: fullPicks(['shen', 'lee-sin', 'hwei', 'kog-maw', null], ['ornn', 'amumu', 'orianna', 'vayne', 'malphite']), bans: { blue: ['teemo'], red: [] }, slotRoles: { blue: roles, red: roles } };
+  assert.equal(completeSeriesGame(series, 1, partial, roles), false);
+  assert.equal(series.games[0].completed, false);
+  assert.equal(countGameBans(series.games[0]), 0);
 });

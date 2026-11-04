@@ -442,305 +442,157 @@
 @media(max-width:700px){.reports-grid{grid-template-columns:1fr}.report-wide{grid-column:auto}.tools-row{grid-template-columns:1fr}}
 
 
-/* v0.7.0 — VoidKings coach workspace: cinematic picks, richer recommendations and lane matchup cards */
-:root{--vk-violet:#b69aff;--vk-violet-deep:#6e55b7;--vk-gold:#e7c67d;--vk-gold-soft:#f2ddb0}
-.page-heading h1 em{color:var(--vk-violet);text-shadow:0 0 26px #a88cff30}
-.page-heading .eyebrow{color:#b8a8e9}
-.section-subtitle{margin:7px 0 0;color:#99a8bd;font-size:12px;line-height:1.55;max-width:740px}
-.draft-layout{gap:20px}
-.draft-main-column>.panel{border-color:#30314b;box-shadow:0 12px 34px #00000025}
-.picks-panel{background:radial-gradient(ellipse at 50% 0%,#30264a33,transparent 52%),linear-gradient(150deg,#111927,#111725 72%)}
-.team-board{gap:18px}
-.pick-list{gap:9px}
-.pick-entry{grid-template-columns:28px minmax(76px,88px) minmax(0,1fr);gap:7px}
-.pick-order-badge{font-size:14px;border-color:#5b4c78;background:linear-gradient(145deg,#251f37,#142137);color:#d8c7ff}
-.red-column .pick-order-badge{border-color:#724452;background:linear-gradient(145deg,#38212e,#251b29);color:#ffc0c9}
-.pick-role-select{font-size:9px;letter-spacing:.4px}
-.pick-entry .pick-slot{display:grid;grid-template-columns:72px minmax(0,1fr) 23px;gap:10px;min-height:74px;padding:6px 8px;border-radius:8px;overflow:hidden;background:#121d2d}
-.blue-column .pick-entry .pick-slot.filled{border-color:#6e69a7;background:linear-gradient(110deg,#1d2940,#121b2a)}
-.red-column .pick-entry .pick-slot.filled{border-color:#80505d;background:linear-gradient(110deg,#30212d,#211b27)}
-.pick-visual{position:relative;display:grid;place-items:center;width:72px;height:60px;overflow:hidden;border-radius:6px;background:linear-gradient(145deg,#30264b,#17243a);border:1px solid #5d5079;isolation:isolate}
-.pick-visual .champion-splash-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 25%;filter:saturate(.88);z-index:0;transition:transform .35s ease,filter .35s ease}
-.pick-visual-shade{position:absolute;inset:0;background:linear-gradient(90deg,#0b1222a8,#10172724 58%,#0b122280);z-index:1}
-.pick-visual .champion-avatar.board{position:absolute;left:5px;bottom:5px;width:28px;height:28px;border:1px solid #e5d1a4;border-radius:5px;box-shadow:0 3px 10px #0009;z-index:2}
-.pick-visual.splash-missing .champion-splash-art{display:none}
-.empty-pick-visual{border-style:dashed;background:#121d2d;color:#91a4c0;font-size:22px}
-.pick-slot:hover .pick-visual .champion-splash-art{transform:scale(1.08);filter:saturate(1.12)}
-.pick-entry .pick-slot .pick-copy{grid-column:2;grid-row:1;align-self:center;min-width:0}
-.pick-copy strong{font-size:13px;letter-spacing:.1px}
-.pick-copy small{font-size:9px;line-height:1.35}
-.pick-entry .pick-slot .pick-add-mark,.pick-entry .pick-slot .remove-pick{grid-column:3;grid-row:1;align-self:center}
-.pick-entry .pick-slot .remove-pick{font-size:20px}
-.pick-entry .pick-slot.filled .pick-copy{padding-right:0}
-.red-column .pick-visual{border-color:#80505d;background:linear-gradient(145deg,#452b3a,#1b2433)}
-.pick-coach-panel{padding:21px;border-color:#66558e;background:radial-gradient(ellipse at 96% 0%,#7e5fc52d,transparent 55%),linear-gradient(135deg,#201b33,#131c2d 68%);box-shadow:0 12px 34px #0003}
-.pick-coach-panel:before{width:4px;background:linear-gradient(180deg,var(--vk-gold),var(--vk-violet))}
-.pick-coach-header{align-items:center;margin-bottom:17px}
-.pick-coach-header h3{font-size:29px;letter-spacing:.15px}
-.pick-coach-header p{max-width:780px;font-size:12px;line-height:1.6;margin-top:7px}
-.coach-turn{padding:9px 12px;font-size:10px;border-color:#7862a7;background:#2a2341;color:#e2d8ff}
-.coach-turn.last{border-color:#a17c47;background:#3b3020;color:#f6d99e}
-.pick-suggestions{gap:12px;align-items:stretch}
-.pick-suggestion{position:relative;align-items:flex-start;gap:13px;padding:14px;border-radius:10px;background:linear-gradient(145deg,#151f31,#101927);border-color:#35425b;min-height:154px}
-.pick-suggestion:hover{transform:translateY(-3px);border-color:#9680cf;box-shadow:0 11px 26px #0004}
-.pick-suggestion.is-top-fit{border-color:#9a8050;background:linear-gradient(145deg,#2b261c,#171e2c 73%);box-shadow:inset 0 0 22px #e5c1780b}
-.suggestion-portrait{position:relative;flex:0 0 auto}
-.champion-avatar.recommendation{width:58px;height:58px;border-radius:10px;border-color:#78669e}
-.suggestion-rank{position:absolute;right:-5px;top:-6px;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#241d36;border:1px solid #ad98ec;color:#e7ddff;font:900 10px var(--display)}
-.pick-suggestion-copy{display:grid;gap:8px}
-.pick-suggestion-top{align-items:flex-start}
-.pick-suggestion-top strong{font-size:15px;white-space:normal;line-height:1.2}
-.suggestion-badges{display:flex;align-items:center;justify-content:flex-end;gap:5px;flex-wrap:wrap}
-.rec-tier{font-size:8px;padding:4px 6px;border:1px solid #62537f;border-radius:4px;background:#282139;color:#e0d2ff}
-.rec-tier.alt{border-color:#3e5f80;background:#172a3c;color:#b9d9f7}
-.best-fit-badge{font-size:7px;font-weight:900;letter-spacing:.55px;padding:4px 6px;border-radius:4px;border:1px solid #a48950;background:#3b3020;color:#f2d99f;white-space:nowrap}
-.suggestion-score{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;border:1px solid #303e54;border-radius:5px;background:#0d1624}
-.suggestion-score span{font-size:8px;font-weight:900;letter-spacing:.7px;color:#8092ac}
-.suggestion-score b{font-size:10px;color:#d8c9ff;font-variant-numeric:tabular-nums}
-.recommendation-reasons{display:grid;gap:6px}
-.recommendation-reason{display:grid;gap:2px;padding-left:8px;border-left:2px solid #7866a6}
-.recommendation-reason b{font-size:9px;color:#d7c8ff;letter-spacing:.15px}
-.recommendation-reason span{font-size:9px;line-height:1.45;color:#9aaac0}
-.recommendation-reason.good{border-color:#5cae8a}
-.recommendation-reason.good b{color:#a4e4c4}
-.recommendation-reason.warning{border-color:#c18a54}
-.recommendation-reason.warning b{color:#f0c58e}
-.pick-suggestion .rec-add{align-self:flex-start;flex:0 0 30px;width:30px;height:30px;border-radius:7px;background:#28213c;border-color:#65518b;color:#e4d9ff;font-size:19px}
-.pick-suggestion .rec-add:hover{background:#49376a;border-color:#bd9cff}
-.pick-coach-foot{margin-top:13px;padding-top:11px;border-top:1px solid #344056;color:#a3b1c5;font-size:10px;line-height:1.5}
-.role-recommendations{gap:10px}
-.role-rec{padding:12px;border:1px solid #2b3b53;border-radius:8px;background:#111b2a}
-.role-rec-head strong{font-size:11px}
-.rec-choice{min-height:39px;gap:6px}
-.rec-choice>button:not(.rec-add){font-size:10px}
-.role-rec-score{font-size:9px;color:#8e9db2;font-variant-numeric:tabular-nums}
-.build-grid{gap:12px}
-.build-card{padding:16px;border-color:#34334f;background:linear-gradient(145deg,#151e2e,#111824)}
-.build-card h3{font-size:18px}
-.build-card p{font-size:11px;line-height:1.55}
-.build-picks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
-.build-picks .build-pick-chip{display:flex;align-items:center;gap:7px;min-width:0;padding:6px;background:#111927;border-color:#303b53}
-.build-picks .build-pick-chip .champion-avatar.tiny{width:31px;height:31px;flex:0 0 31px}
-.build-pick-chip>span:last-child{display:grid;gap:2px;min-width:0;background:transparent;border:0;padding:0}
-.build-pick-chip small{font-size:7px;color:#8a9ab1;font-weight:900;text-transform:uppercase}
-.build-pick-chip strong{font-size:9px;color:#e0e8f4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.coach-reports{margin-top:30px;gap:22px}
-.reports-heading h2{font-size:39px}
-.reports-grid{gap:20px}
-.report-card{border-color:#35344f;background:linear-gradient(145deg,#141d2c,#111824);box-shadow:0 12px 35px #0002}
-.report-card .section-heading h2{font-size:30px}
-.report-card .section-subtitle{font-size:12px;line-height:1.55}
-.matchup-subsection{padding-top:3px}
-.comparison-title-row{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
-.comparison-title-row p{margin:5px 0 0;color:#8fa1b8;font-size:10px;line-height:1.5}
-.comparison-mode-tag{flex:0 0 auto;padding:6px 8px;border:1px solid #4d456d;border-radius:5px;background:#211d33;color:#cbbcf5;font-size:8px;font-weight:900;letter-spacing:.5px}
-.comparison-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 22px;padding:19px;border:1px solid #30334c;border-radius:9px;background:#0e1725}
-.compare-metric-head span{font-size:12px;font-weight:800}
-.compare-metric-head small{font-size:11px;font-variant-numeric:tabular-nums}
-.compare-meter{height:8px;border-radius:10px}
-.lane-priority-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
-.lane-priority-card{padding:16px;background:linear-gradient(145deg,#141f30,#101824);border-color:#37435a}
-.lane-priority-card.vk-edge{border-color:#6d5a94;background:linear-gradient(145deg,#28213d,#151e2e)}
-.lane-priority-card.vk-edge .lane-card-head>b{background:#42345e;color:#e0d2ff}
-.lane-priority-card.enemy-edge{border-color:#80505d;background:linear-gradient(145deg,#32212d,#1d1b28)}
-.lane-priority-card.enemy-edge .lane-card-head>b{background:#57303b;color:#ffc1cb}
-.lane-card-head>span{font-size:12px;letter-spacing:.25px}
-.lane-card-head>b{font-size:9px;padding:6px 8px}
-.lane-matchup-portraits{display:grid;grid-template-columns:minmax(0,1fr) 26px minmax(0,1fr);align-items:center;gap:9px;margin-top:13px}
-.lane-side-pick{display:grid;grid-template-columns:42px minmax(0,1fr);align-items:center;gap:8px;min-width:0}
-.lane-side-pick.enemy{justify-items:end;text-align:right}
-.champion-avatar.lane{width:42px;height:42px;border-radius:8px;border-color:#7a6b9d}
-.lane-side-pick strong{font-size:11px;line-height:1.2;overflow-wrap:anywhere}
-.lane-vs{text-align:center;font:900 12px var(--display);color:#8d83ac}
-.lane-avatar-empty{width:42px;height:42px;display:grid;place-items:center;border:1px dashed #48536a;border-radius:8px;color:#8190a8}
-.lane-evidence{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px;padding:6px 8px;background:#0d1623;border:1px solid #2b3549;border-radius:5px}
-.lane-evidence span{font-size:9px;color:#b2a4d9;font-weight:800}
-.lane-evidence b{font-size:8px;color:#8296ad;white-space:nowrap}
-.lane-priority-card p{font-size:11px;line-height:1.6;color:#a8b5c8;margin-top:10px}
-.report-explainer{font-size:12px;line-height:1.6}
-.draft-advantage{border-color:#6a568f;background:radial-gradient(ellipse at 100% 0%,#7b5cbc2a,transparent 50%),linear-gradient(125deg,#241f38,#141e2e 75%)}
-.advantage-heading h3{font-size:29px}
-.advantage-team.vk{border-color:#66558e;background:#28213c}
-.advantage-team.vk span{color:#d6c8ff}
-.advantage-team.vk strong{color:#d5c6ff}
-@media(max-width:1100px){.pick-suggestions{grid-template-columns:1fr}.pick-suggestion{min-height:0}.lane-priority-grid{grid-template-columns:1fr}}
-@media(max-width:760px){
-  .main-content{padding-left:12px;padding-right:12px}
-  .pick-entry{grid-template-columns:25px 72px minmax(0,1fr);gap:4px}
-  .pick-entry .pick-slot{grid-template-columns:54px minmax(0,1fr) 18px;gap:6px;min-height:65px;padding:5px}
-  .pick-visual{width:54px;height:53px}
-  .pick-visual .champion-avatar.board{width:23px;height:23px;left:3px;bottom:3px}
-  .pick-copy strong{font-size:11px}
-  .pick-copy small{font-size:8px}
-  .pick-coach-panel{padding:14px}
-  .pick-coach-header{align-items:flex-start;flex-direction:column}
-  .pick-coach-header h3{font-size:25px}
-  .pick-suggestion{padding:11px;gap:9px}
-  .champion-avatar.recommendation{width:48px;height:48px}
-  .pick-suggestion-top{flex-direction:column;align-items:flex-start}
-  .suggestion-badges{justify-content:flex-start}
-  .recommendation-reason span{font-size:9px}
-  .build-picks{grid-template-columns:1fr}
-  .comparison-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:12px}
-  .comparison-title-row{align-items:flex-start;flex-direction:column}
-  .lane-matchup-portraits{grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr);gap:5px}
-  .lane-side-pick{grid-template-columns:34px minmax(0,1fr);gap:5px}
-  .lane-side-pick.enemy{grid-template-columns:minmax(0,1fr) 34px}
-  .lane-side-pick.enemy .champion-avatar,.lane-side-pick.enemy .lane-avatar-empty{grid-column:2;grid-row:1}
-  .lane-side-pick.enemy strong{grid-column:1;grid-row:1}
-  .champion-avatar.lane,.lane-avatar-empty{width:34px;height:34px}
-  .lane-side-pick strong{font-size:9px}
-}
-@media(prefers-reduced-motion:reduce){.pick-entry,.pick-slot.filled,.pick-suggestion,.report-card,.lane-priority-card{animation:none!important;transition:none!important}}
+/* v0.7.0 — enforce full-width coach reports and make game-scoped vetoes explicit */
+#view-draft .draft-layout{display:block!important;grid-template-columns:minmax(0,1fr)!important;width:100%;max-width:none}
+#view-draft .draft-main-column{display:grid!important;grid-template-columns:minmax(0,1fr)!important;width:100%;min-width:0;gap:18px}
+#view-draft .coach-reports{display:grid!important;position:static!important;inset:auto!important;float:none!important;width:100%!important;max-width:none!important;grid-column:1/-1;margin:24px 0 0}
+#view-draft .reports-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:18px}
+#view-draft .analysis-panel,#view-draft .matchup-panel{grid-column:1/-1}
+#view-draft .report-card{padding:24px;min-width:0}
+#view-draft .report-card .section-heading h2{font-size:29px}
+#view-draft .report-card .section-kicker{font-size:11px;letter-spacing:1.1px}
+#view-draft .analysis-panel .analysis-grade strong{font-size:18px}
+#view-draft .analysis-panel .analysis-grade small{font-size:13px;line-height:1.55}
+#view-draft .analysis-panel .metric-label,#view-draft .analysis-panel .metric-label b{font-size:13px}
+#view-draft .report-explainer,#view-draft .game-phase p,#view-draft .matchup-action p,#view-draft .lane-priority-card p{font-size:13px;line-height:1.65}
+#view-draft .lane-card-head>span{font-size:13px}
+#view-draft .lane-card-head>b{font-size:10px}
+#view-draft .lane-matchup strong{font-size:13px}
+#view-draft .priority-summary>div{font-size:13px}
+#view-draft .game-phase>span{font-size:11px}
+#view-draft .matchup-action strong{font-size:14px}
+#view-draft .series-rule-note{margin-top:11px;padding:10px 12px;border:1px solid #574a7a;border-radius:7px;background:#211d33;color:#c7badf;font-size:12px;line-height:1.55}
+#view-draft .series-rule-note strong{color:#f0e8ff}
+#view-draft .series-game-tab{min-width:150px}
+#view-draft .series-game-tab small{font-size:9px;line-height:1.4;white-space:normal}
+#view-draft .ban-phase-help{margin:6px 0 0;color:#91a3bc;font-size:12px;line-height:1.5}
+#view-draft .game-context-tag{display:inline-flex;vertical-align:middle;margin-left:7px;padding:4px 8px;border:1px solid #68558b;border-radius:5px;background:#29223f;color:#e3d7ff;font:800 11px var(--font);letter-spacing:.5px}
+#view-draft .fearless-ban-strip{margin:0 0 13px;padding:12px 13px;border:1px solid #69538e;border-radius:8px;background:linear-gradient(120deg,#211d36,#171d2c)}
+#view-draft .fearless-ban-strip[hidden]{display:none}
+#view-draft .fearless-strip-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:9px}
+#view-draft .fearless-strip-heading strong{font-size:11px;letter-spacing:.8px;color:#e4d8ff}
+#view-draft .fearless-strip-heading span{font-size:11px;color:#a99bc7;text-align:right}
+#view-draft .fearless-strip-chips{display:flex;flex-wrap:wrap;gap:7px}
+#view-draft .fearless-ban-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 8px;border:1px solid #55476f;border-radius:6px;background:#171728;color:#e8e0f9}
+#view-draft .fearless-ban-chip b{font-size:11px}
+#view-draft .fearless-ban-chip small{font-size:9px;color:#c1aee8;font-weight:900}
+#view-draft .fearless-ban-chip .champion-avatar{width:23px;height:23px;flex:0 0 23px}
+@media(max-width:1100px){#view-draft .reports-grid{grid-template-columns:1fr}#view-draft .analysis-panel,#view-draft .matchup-panel{grid-column:1}#view-draft .fearless-strip-heading{align-items:flex-start;flex-direction:column}}
+@media(max-width:700px){#view-draft .report-card{padding:16px}#view-draft .report-card .section-heading h2{font-size:24px}#view-draft .series-actions{grid-template-columns:1fr 1fr}#view-draft .series-rule-note{font-size:11px}#view-draft .series-game-tab{min-width:0;flex:1 1 29%}#view-draft .fearless-strip-chips{gap:5px}}
 
 
-/* v0.7.0 — VoidKings coach workspace: cinematic picks, richer recommendations and lane matchup cards */
-:root{--vk-violet:#b69aff;--vk-violet-deep:#6e55b7;--vk-gold:#e7c67d;--vk-gold-soft:#f2ddb0}
-.page-heading h1 em{color:var(--vk-violet);text-shadow:0 0 26px #a88cff30}
-.page-heading .eyebrow{color:#b8a8e9}
-.section-subtitle{margin:7px 0 0;color:#99a8bd;font-size:12px;line-height:1.55;max-width:740px}
-.draft-layout{gap:20px}
-.draft-main-column>.panel{border-color:#30314b;box-shadow:0 12px 34px #00000025}
-.picks-panel{background:radial-gradient(ellipse at 50% 0%,#30264a33,transparent 52%),linear-gradient(150deg,#111927,#111725 72%)}
-.team-board{gap:18px}
-.pick-list{gap:9px}
-.pick-entry{grid-template-columns:28px minmax(76px,88px) minmax(0,1fr);gap:7px}
-.pick-order-badge{font-size:14px;border-color:#5b4c78;background:linear-gradient(145deg,#251f37,#142137);color:#d8c7ff}
-.red-column .pick-order-badge{border-color:#724452;background:linear-gradient(145deg,#38212e,#251b29);color:#ffc0c9}
-.pick-role-select{font-size:9px;letter-spacing:.4px}
-.pick-entry .pick-slot{display:grid;grid-template-columns:72px minmax(0,1fr) 23px;gap:10px;min-height:74px;padding:6px 8px;border-radius:8px;overflow:hidden;background:#121d2d}
-.blue-column .pick-entry .pick-slot.filled{border-color:#6e69a7;background:linear-gradient(110deg,#1d2940,#121b2a)}
-.red-column .pick-entry .pick-slot.filled{border-color:#80505d;background:linear-gradient(110deg,#30212d,#211b27)}
-.pick-visual{position:relative;display:grid;place-items:center;width:72px;height:60px;overflow:hidden;border-radius:6px;background:linear-gradient(145deg,#30264b,#17243a);border:1px solid #5d5079;isolation:isolate}
-.pick-visual .champion-splash-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 25%;filter:saturate(.88);z-index:0;transition:transform .35s ease,filter .35s ease}
-.pick-visual-shade{position:absolute;inset:0;background:linear-gradient(90deg,#0b1222a8,#10172724 58%,#0b122280);z-index:1}
-.pick-visual .champion-avatar.board{position:absolute;left:5px;bottom:5px;width:28px;height:28px;border:1px solid #e5d1a4;border-radius:5px;box-shadow:0 3px 10px #0009;z-index:2}
-.pick-visual.splash-missing .champion-splash-art{display:none}
-.empty-pick-visual{border-style:dashed;background:#121d2d;color:#91a4c0;font-size:22px}
-.pick-slot:hover .pick-visual .champion-splash-art{transform:scale(1.08);filter:saturate(1.12)}
-.pick-entry .pick-slot .pick-copy{grid-column:2;grid-row:1;align-self:center;min-width:0}
-.pick-copy strong{font-size:13px;letter-spacing:.1px}
-.pick-copy small{font-size:9px;line-height:1.35}
-.pick-entry .pick-slot .pick-add-mark,.pick-entry .pick-slot .remove-pick{grid-column:3;grid-row:1;align-self:center}
-.pick-entry .pick-slot .remove-pick{font-size:20px}
-.pick-entry .pick-slot.filled .pick-copy{padding-right:0}
-.red-column .pick-visual{border-color:#80505d;background:linear-gradient(145deg,#452b3a,#1b2433)}
-.pick-coach-panel{padding:21px;border-color:#66558e;background:radial-gradient(ellipse at 96% 0%,#7e5fc52d,transparent 55%),linear-gradient(135deg,#201b33,#131c2d 68%);box-shadow:0 12px 34px #0003}
-.pick-coach-panel:before{width:4px;background:linear-gradient(180deg,var(--vk-gold),var(--vk-violet))}
-.pick-coach-header{align-items:center;margin-bottom:17px}
-.pick-coach-header h3{font-size:29px;letter-spacing:.15px}
-.pick-coach-header p{max-width:780px;font-size:12px;line-height:1.6;margin-top:7px}
-.coach-turn{padding:9px 12px;font-size:10px;border-color:#7862a7;background:#2a2341;color:#e2d8ff}
-.coach-turn.last{border-color:#a17c47;background:#3b3020;color:#f6d99e}
-.pick-suggestions{gap:12px;align-items:stretch}
-.pick-suggestion{position:relative;align-items:flex-start;gap:13px;padding:14px;border-radius:10px;background:linear-gradient(145deg,#151f31,#101927);border-color:#35425b;min-height:154px}
-.pick-suggestion:hover{transform:translateY(-3px);border-color:#9680cf;box-shadow:0 11px 26px #0004}
-.pick-suggestion.is-top-fit{border-color:#9a8050;background:linear-gradient(145deg,#2b261c,#171e2c 73%);box-shadow:inset 0 0 22px #e5c1780b}
-.suggestion-portrait{position:relative;flex:0 0 auto}
-.champion-avatar.recommendation{width:58px;height:58px;border-radius:10px;border-color:#78669e}
-.suggestion-rank{position:absolute;right:-5px;top:-6px;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#241d36;border:1px solid #ad98ec;color:#e7ddff;font:900 10px var(--display)}
-.pick-suggestion-copy{display:grid;gap:8px}
-.pick-suggestion-top{align-items:flex-start}
-.pick-suggestion-top strong{font-size:15px;white-space:normal;line-height:1.2}
-.suggestion-badges{display:flex;align-items:center;justify-content:flex-end;gap:5px;flex-wrap:wrap}
-.rec-tier{font-size:8px;padding:4px 6px;border:1px solid #62537f;border-radius:4px;background:#282139;color:#e0d2ff}
-.rec-tier.alt{border-color:#3e5f80;background:#172a3c;color:#b9d9f7}
-.best-fit-badge{font-size:7px;font-weight:900;letter-spacing:.55px;padding:4px 6px;border-radius:4px;border:1px solid #a48950;background:#3b3020;color:#f2d99f;white-space:nowrap}
-.suggestion-score{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;border:1px solid #303e54;border-radius:5px;background:#0d1624}
-.suggestion-score span{font-size:8px;font-weight:900;letter-spacing:.7px;color:#8092ac}
-.suggestion-score b{font-size:10px;color:#d8c9ff;font-variant-numeric:tabular-nums}
-.recommendation-reasons{display:grid;gap:6px}
-.recommendation-reason{display:grid;gap:2px;padding-left:8px;border-left:2px solid #7866a6}
-.recommendation-reason b{font-size:9px;color:#d7c8ff;letter-spacing:.15px}
-.recommendation-reason span{font-size:9px;line-height:1.45;color:#9aaac0}
-.recommendation-reason.good{border-color:#5cae8a}
-.recommendation-reason.good b{color:#a4e4c4}
-.recommendation-reason.warning{border-color:#c18a54}
-.recommendation-reason.warning b{color:#f0c58e}
-.pick-suggestion .rec-add{align-self:flex-start;flex:0 0 30px;width:30px;height:30px;border-radius:7px;background:#28213c;border-color:#65518b;color:#e4d9ff;font-size:19px}
-.pick-suggestion .rec-add:hover{background:#49376a;border-color:#bd9cff}
-.pick-coach-foot{margin-top:13px;padding-top:11px;border-top:1px solid #344056;color:#a3b1c5;font-size:10px;line-height:1.5}
-.role-recommendations{gap:10px}
-.role-rec{padding:12px;border:1px solid #2b3b53;border-radius:8px;background:#111b2a}
-.role-rec-head strong{font-size:11px}
-.rec-choice{min-height:39px;gap:6px}
-.rec-choice>button:not(.rec-add){font-size:10px}
-.role-rec-score{font-size:9px;color:#8e9db2;font-variant-numeric:tabular-nums}
-.build-grid{gap:12px}
-.build-card{padding:16px;border-color:#34334f;background:linear-gradient(145deg,#151e2e,#111824)}
-.build-card h3{font-size:18px}
-.build-card p{font-size:11px;line-height:1.55}
-.build-picks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
-.build-picks .build-pick-chip{display:flex;align-items:center;gap:7px;min-width:0;padding:6px;background:#111927;border-color:#303b53}
-.build-picks .build-pick-chip .champion-avatar.tiny{width:31px;height:31px;flex:0 0 31px}
-.build-pick-chip>span:last-child{display:grid;gap:2px;min-width:0;background:transparent;border:0;padding:0}
-.build-pick-chip small{font-size:7px;color:#8a9ab1;font-weight:900;text-transform:uppercase}
-.build-pick-chip strong{font-size:9px;color:#e0e8f4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.coach-reports{margin-top:30px;gap:22px}
-.reports-heading h2{font-size:39px}
-.reports-grid{gap:20px}
-.report-card{border-color:#35344f;background:linear-gradient(145deg,#141d2c,#111824);box-shadow:0 12px 35px #0002}
-.report-card .section-heading h2{font-size:30px}
-.report-card .section-subtitle{font-size:12px;line-height:1.55}
-.matchup-subsection{padding-top:3px}
-.comparison-title-row{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
-.comparison-title-row p{margin:5px 0 0;color:#8fa1b8;font-size:10px;line-height:1.5}
-.comparison-mode-tag{flex:0 0 auto;padding:6px 8px;border:1px solid #4d456d;border-radius:5px;background:#211d33;color:#cbbcf5;font-size:8px;font-weight:900;letter-spacing:.5px}
-.comparison-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 22px;padding:19px;border:1px solid #30334c;border-radius:9px;background:#0e1725}
-.compare-metric-head span{font-size:12px;font-weight:800}
-.compare-metric-head small{font-size:11px;font-variant-numeric:tabular-nums}
-.compare-meter{height:8px;border-radius:10px}
-.lane-priority-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
-.lane-priority-card{padding:16px;background:linear-gradient(145deg,#141f30,#101824);border-color:#37435a}
-.lane-priority-card.vk-edge{border-color:#6d5a94;background:linear-gradient(145deg,#28213d,#151e2e)}
-.lane-priority-card.vk-edge .lane-card-head>b{background:#42345e;color:#e0d2ff}
-.lane-priority-card.enemy-edge{border-color:#80505d;background:linear-gradient(145deg,#32212d,#1d1b28)}
-.lane-priority-card.enemy-edge .lane-card-head>b{background:#57303b;color:#ffc1cb}
-.lane-card-head>span{font-size:12px;letter-spacing:.25px}
-.lane-card-head>b{font-size:9px;padding:6px 8px}
-.lane-matchup-portraits{display:grid;grid-template-columns:minmax(0,1fr) 26px minmax(0,1fr);align-items:center;gap:9px;margin-top:13px}
-.lane-side-pick{display:grid;grid-template-columns:42px minmax(0,1fr);align-items:center;gap:8px;min-width:0}
-.lane-side-pick.enemy{justify-items:end;text-align:right}
-.champion-avatar.lane{width:42px;height:42px;border-radius:8px;border-color:#7a6b9d}
-.lane-side-pick strong{font-size:11px;line-height:1.2;overflow-wrap:anywhere}
-.lane-vs{text-align:center;font:900 12px var(--display);color:#8d83ac}
-.lane-avatar-empty{width:42px;height:42px;display:grid;place-items:center;border:1px dashed #48536a;border-radius:8px;color:#8190a8}
-.lane-evidence{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px;padding:6px 8px;background:#0d1623;border:1px solid #2b3549;border-radius:5px}
-.lane-evidence span{font-size:9px;color:#b2a4d9;font-weight:800}
-.lane-evidence b{font-size:8px;color:#8296ad;white-space:nowrap}
-.lane-priority-card p{font-size:11px;line-height:1.6;color:#a8b5c8;margin-top:10px}
-.report-explainer{font-size:12px;line-height:1.6}
-.draft-advantage{border-color:#6a568f;background:radial-gradient(ellipse at 100% 0%,#7b5cbc2a,transparent 50%),linear-gradient(125deg,#241f38,#141e2e 75%)}
-.advantage-heading h3{font-size:29px}
-.advantage-team.vk{border-color:#66558e;background:#28213c}
-.advantage-team.vk span{color:#d6c8ff}
-.advantage-team.vk strong{color:#d5c6ff}
-@media(max-width:1100px){.pick-suggestions{grid-template-columns:1fr}.pick-suggestion{min-height:0}.lane-priority-grid{grid-template-columns:1fr}}
+/* v0.8.0 — unmistakable game-scoped bans and full-width coach report stack */
+#view-draft .reports-grid{grid-template-columns:minmax(0,1fr)!important;gap:20px!important}
+#view-draft .reports-grid>.report-card{grid-column:1/-1!important;width:100%;max-width:none}
+#view-draft .coach-reports{order:4}
+#view-draft .draft-layout{display:block!important;width:100%!important}
+#view-draft .draft-main-column{display:flex!important;flex-direction:column!important;gap:19px!important;width:100%!important}
+#view-draft .coach-reports{display:flex!important;flex-direction:column!important;width:100%!important;margin-top:27px!important}
+#view-draft .reports-grid{display:grid!important;grid-template-columns:minmax(0,1fr)!important}
+#view-draft .report-card{width:100%!important;min-height:0;padding:25px 27px!important}
+#view-draft .report-card .section-heading h2{font-size:30px!important}
+#view-draft .report-card .section-kicker{font-size:11px!important}
+#view-draft .release-chip{display:inline-flex;vertical-align:middle;margin-left:8px;padding:4px 7px;border:1px solid #62528c;border-radius:5px;background:#26213a;color:#d9caff;font-size:8px;letter-spacing:.7px}
+#view-draft .ban-heading-meta{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+#view-draft .game-ban-count{display:inline-flex;align-items:center;padding:7px 9px;border:1px solid #66518b;border-radius:6px;background:#241f38;color:#e3d8ff;font-size:10px;font-weight:900;letter-spacing:.55px;white-space:nowrap}
+#view-draft .series-game-tab{min-width:155px}
+#view-draft .series-game-tab small{font-size:9px;line-height:1.45;white-space:normal}
+#view-draft .series-rule-note{font-size:12px;line-height:1.65}
+#view-draft .fearless-strip-heading strong{font-size:12px}
+#view-draft .fearless-strip-heading span{font-size:11px}
 @media(max-width:760px){
-  .main-content{padding-left:12px;padding-right:12px}
-  .pick-entry{grid-template-columns:25px 72px minmax(0,1fr);gap:4px}
-  .pick-entry .pick-slot{grid-template-columns:54px minmax(0,1fr) 18px;gap:6px;min-height:65px;padding:5px}
-  .pick-visual{width:54px;height:53px}
-  .pick-visual .champion-avatar.board{width:23px;height:23px;left:3px;bottom:3px}
-  .pick-copy strong{font-size:11px}
-  .pick-copy small{font-size:8px}
-  .pick-coach-panel{padding:14px}
-  .pick-coach-header{align-items:flex-start;flex-direction:column}
-  .pick-coach-header h3{font-size:25px}
-  .pick-suggestion{padding:11px;gap:9px}
-  .champion-avatar.recommendation{width:48px;height:48px}
-  .pick-suggestion-top{flex-direction:column;align-items:flex-start}
-  .suggestion-badges{justify-content:flex-start}
-  .recommendation-reason span{font-size:9px}
-  .build-picks{grid-template-columns:1fr}
-  .comparison-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:12px}
-  .comparison-title-row{align-items:flex-start;flex-direction:column}
-  .lane-matchup-portraits{grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr);gap:5px}
-  .lane-side-pick{grid-template-columns:34px minmax(0,1fr);gap:5px}
-  .lane-side-pick.enemy{grid-template-columns:minmax(0,1fr) 34px}
-  .lane-side-pick.enemy .champion-avatar,.lane-side-pick.enemy .lane-avatar-empty{grid-column:2;grid-row:1}
-  .lane-side-pick.enemy strong{grid-column:1;grid-row:1}
-  .champion-avatar.lane,.lane-avatar-empty{width:34px;height:34px}
-  .lane-side-pick strong{font-size:9px}
+  #view-draft .ban-heading-meta{align-items:flex-start;margin-top:10px}
+  #view-draft .report-card{padding:16px!important}
+  #view-draft .report-card .section-heading h2{font-size:24px!important}
+  #view-draft .series-actions{display:grid;grid-template-columns:1fr 1fr}
+  #view-draft .series-lock-count{grid-column:1/-1;text-align:center}
+  #view-draft .series-game-tab{min-width:0;flex:1 1 29%}
 }
-@media(prefers-reduced-motion:reduce){.pick-entry,.pick-slot.filled,.pick-suggestion,.report-card,.lane-priority-card{animation:none!important;transition:none!important}}
+
+
+/* v0.8.1 — mirrored champion placement: blue faces right, red faces left */
+#view-draft .blue-column .pick-entry .pick-slot{
+  grid-template-columns:39px minmax(0,1fr) 20px;
+}
+#view-draft .blue-column .pick-entry .pick-slot>.champion-avatar{grid-column:1;grid-row:1;justify-self:start}
+#view-draft .blue-column .pick-entry .pick-slot>.pick-copy{grid-column:2;grid-row:1;text-align:left;min-width:0}
+#view-draft .blue-column .pick-entry .pick-slot>.pick-add-mark,
+#view-draft .blue-column .pick-entry .pick-slot>.remove-pick{grid-column:3;grid-row:1;justify-self:center}
+#view-draft .red-column .pick-entry .pick-slot{
+  grid-template-columns:20px minmax(0,1fr) 39px;
+}
+#view-draft .red-column .pick-entry .pick-slot>.pick-add-mark,
+#view-draft .red-column .pick-entry .pick-slot>.remove-pick{grid-column:1;grid-row:1;justify-self:center}
+#view-draft .red-column .pick-entry .pick-slot>.pick-copy{grid-column:2;grid-row:1;text-align:right;min-width:0;padding-right:3px}
+#view-draft .red-column .pick-entry .pick-slot>.champion-avatar{grid-column:3;grid-row:1;justify-self:end}
+#view-draft .red-column .pick-entry .pick-slot .pick-copy strong,
+#view-draft .red-column .pick-entry .pick-slot .pick-copy small{text-align:left}
+
+/* The lane matchup mirrors the board: our portrait at the left edge,
+   opponent portrait at the right edge, with names facing the VS divider. */
+#view-draft .lane-matchup{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  align-items:stretch;
+  gap:8px;
+}
+#view-draft .lane-team-chip{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+  min-height:46px;
+  padding:6px 8px;
+  border:1px solid #31516f;
+  border-radius:7px;
+  background:linear-gradient(110deg,#142940,#101c2b);
+}
+#view-draft .lane-team-chip.own{justify-content:flex-start}
+#view-draft .lane-team-chip.enemy{
+  justify-content:space-between;
+  border-color:#65404b;
+  background:linear-gradient(110deg,#211d29,#30212b);
+  text-align:left;
+}
+#view-draft .lane-team-chip strong{
+  display:block;
+  flex:1 1 auto;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:13px;
+  line-height:1.25;
+}
+#view-draft .lane-team-chip .champion-avatar.tiny{
+  width:30px;
+  height:30px;
+  flex:0 0 30px;
+  border-radius:6px;
+}
+#view-draft .lane-team-chip .lane-champion-placeholder{
+  width:30px;
+  height:30px;
+  flex:0 0 30px;
+  display:grid;
+  place-items:center;
+  border:1px dashed #50617a;
+  border-radius:6px;
+  color:#7f91aa;
+  font-weight:900;
+}
+#view-draft .lane-versus{
+  align-self:center;
+  min-width:27px;
+  text-align:center;
+  font:900 11px var(--display);
+  color:#a7b5c9;
+}
+@media(max-width:700px){
+  #view-draft .lane-matchup{gap:5px}
+  #view-draft .lane-team-chip{gap:5px;padding:5px;min-height:40px}
+  #view-draft .lane-team-chip strong{font-size:11px}
+  #view-draft .lane-team-chip .champion-avatar.tiny,
+  #view-draft .lane-team-chip .lane-champion-placeholder{width:26px;height:26px;flex-basis:26px}
+  #view-draft .lane-versus{min-width:20px;font-size:9px}
+}

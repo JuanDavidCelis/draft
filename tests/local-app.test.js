@@ -35,7 +35,7 @@ test('la PWA tiene manifest, service worker e iconos locales', () => {
   const manifest = JSON.parse(read('manifest.webmanifest'));
   const sw = read('sw.js');
   assert.match(html, /rel="manifest"/);
-  assert.match(sw, /addAll\(APP_SHELL\)/);
+  assert.match(sw, /cache\.addAll\(APP_SHELL\.map/);
   for (const icon of manifest.icons) assert.ok(existsSync(resolve(root, icon.src)), icon.src);
 });
 
@@ -133,4 +133,68 @@ test('los informes del coach se muestran debajo del draft con tipografía amplia
   assert.match(css, /report-card \.section-heading h2\{font-size:28px\}/);
   assert.match(css, /\.game-phase p\{font-size:14px/);
   assert.match(css, /@media\(max-width:700px\)\{\.reports-grid\{grid-template-columns:1fr\}/);
+});
+
+
+test('los cuatro informes quedan debajo del tablero en el flujo principal, no en una barra lateral', () => {
+  const html = read('index.html');
+  const css = read('assets/css/styles.css');
+  const start = html.indexOf('<div class="draft-main-column">');
+  const reports = html.indexOf('<section class="coach-reports"');
+  const disclaimer = html.indexOf('report-disclaimer', reports);
+  const reportsEnd = html.indexOf('</section>', disclaimer);
+  const mainColumnEnd = html.indexOf('</div>', reportsEnd);
+  assert.ok(start >= 0 && reports > start && reportsEnd > reports && mainColumnEnd > reportsEnd);
+  assert.doesNotMatch(html, /draft-side-column/);
+  assert.match(css, /#view-draft \.draft-layout\{display:block!important/);
+  assert.match(css, /#view-draft \.coach-reports\{display:grid!important/);
+});
+
+test('cada game muestra su veto independiente y los picks previos como Fearless bans', () => {
+  const html = read('index.html');
+  const app = read('assets/js/app.js');
+  const series = read('assets/js/series.js');
+  assert.match(html, /id="ban-game-label"/);
+  assert.match(html, /id="fearless-ban-strip"/);
+  assert.match(html, /los bans manuales no se arrastran/);
+  assert.match(app, /FEARLESS LOCKS · GAME/);
+  assert.match(app, /const locks = seriesLockedMap\(\)/);
+  assert.match(app, /countGameBans\(game\)/);
+  assert.match(app, /Cerrar y abrir Game/);
+  assert.match(app, /gameNumber === nextNumber && !currentGameIsCompleted\(\)/);
+  assert.match(series, /export function countGameBans/);
+});
+
+test('el service worker invalida la versión anterior para que Vercel publique el nuevo layout', () => {
+  const sw = read('sw.js');
+  const app = read('assets/js/app.js');
+  const vercel = read('vercel.json');
+  assert.match(sw, /voidkings-draft-lab-v0-8-1/);
+  assert.match(sw, /cache: 'reload'/);
+  assert.match(sw, /self\.skipWaiting\(\)/);
+  assert.match(app, /updateViaCache: 'none'/);
+  assert.match(vercel, /no-cache, no-store, must-revalidate/);
+});
+
+
+test('v0.8.1 muestra el build, el contador de bans del Game actual y los bloqueos Fearless', () => {
+  const html = read('index.html');
+  const app = read('assets/js/app.js');
+  const sw = read('sw.js');
+  assert.match(html, /DRAFT LAB v0\.8\.1/);
+  assert.match(html, /id="game-ban-count"/);
+  assert.match(app, /FEARLESS LOCKS · GAME/);
+  assert.match(app, /BANS REGISTRADOS EN GAME/);
+  assert.match(sw, /voidkings-draft-lab-v0-8-1/);
+});
+
+test('los cuatro informes se apilan en ancho completo bajo el Draft Board y Pick Coach', () => {
+  const html = read('index.html');
+  const css = read('assets/css/styles.css');
+  const draft = html.indexOf('<section class="panel picks-panel">');
+  const coach = html.indexOf('<section class="panel recommendation-panel"');
+  const reports = html.indexOf('<section class="coach-reports"');
+  assert.ok(draft >= 0 && coach > draft && reports > coach);
+  assert.match(css, /#view-draft \.reports-grid\{display:grid!important;grid-template-columns:minmax\(0,1fr\)!important\}/);
+  assert.match(css, /#view-draft \.reports-grid>\.report-card\{grid-column:1\/-1!important/);
 });

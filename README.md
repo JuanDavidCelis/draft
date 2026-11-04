@@ -1,6 +1,14 @@
+# VoidKings Draft Lab v0.8.1
+
+## Ajustes visuales v0.8.1
+
+- El Draft Board refleja la simetría de ambos lados: el retrato azul queda al borde izquierdo y el retrato rojo al borde derecho; los nombres quedan hacia el centro.
+- La sección **Prioridad potencial por línea** muestra el retrato y el nombre de cada campeón, con la misma alineación espejada alrededor de VS.
+- Se mantiene intacta la lógica de draft, Fearless, la autenticación y Vercel Blob.
+
 # VOIDKINGS DRAFT LAB
 
-Aplicación privada de draft competitivo para **VoidKings · VK SinADC**. Versión **0.6.0**.
+Aplicación privada de draft competitivo para **VoidKings · VK SinADC**. Versión **0.8.1**.
 
 La identidad visual y los textos de la aplicación corresponden a **VoidKings** y al equipo **VK SinADC**. Esta actualización conserva los identificadores internos del Blob y de la sesión de la versión anterior para no perder los drafts, configuraciones ni la sesión ya existentes. Esos identificadores son detalles técnicos de compatibilidad y no aparecen en la interfaz.
 
@@ -16,12 +24,12 @@ La aplicación se ejecuta en Vercel. No utiliza Supabase, Firebase, servicios ex
 
 El estado persistido incluye picks, bans, orden de slots, lado, formato, Champion Pool y composiciones personalizadas. El documento se limita a 2 MB.
 
-## Funciones de la versión 0.6.0
+## Funciones de la versión 0.8.1
 
 - First Pick / Last Pick y formato BO1, BO3 o BO5.
 - Gestión de series Fearless Draft: BO1 crea Game 1; BO3 crea Game 1–3; BO5 crea Game 1–5.
-- Al finalizar un game con los diez picks registrados, los cinco campeones de ambos equipos quedan globalmente bloqueados para los games siguientes de esa serie. Los bans no se arrastran entre games.
-- Los games avanzan secuencialmente; un game solo se puede finalizar tras registrar los cinco picks de cada equipo. Los games completados quedan en modo lectura.
+- Al finalizar un game con los diez picks registrados, los cinco campeones de ambos equipos quedan globalmente bloqueados para los games siguientes de esa serie. Los diez bans manuales quedan guardados dentro de su Game y cada nueva partida empieza con sus propios espacios de veto vacíos.
+- Los games avanzan secuencialmente; un game solo se puede finalizar tras registrar los cinco picks de cada equipo. Al entrar al siguiente Game con 10/10 picks, el actual se cierra automáticamente. Los games completados quedan en modo lectura.
 - El botón **Nueva serie** elimina el bloqueo temporal y crea una serie limpia, conservando Champion Pool y biblioteca. Cambiar BO1/BO3/BO5 con progreso pide confirmación y también reinicia la serie.
 - Bans de ambos equipos.
 - Orden competitivo B1 → R1 → R2 → B2 → B3 → R3 → R4 → B4 → B5 → R5.
@@ -58,9 +66,24 @@ El panel **Matchup Analysis** compara las herramientas de los dos equipos y prop
 
 Los retratos se cargan desde Riot Data Dragon `16.21.1`. Por tanto, la aplicación, la API, el estado privado y las recomendaciones se ejecutan/alojan en Vercel; únicamente las imágenes de campeón se solicitan a la CDN oficial de Riot. Si una imagen no existe o la CDN no responde, se muestran iniciales como alternativa.
 
-Los informes **Lectura del coach**, **Scouting automático**, **Plan de partida** y **Lectura y ajustes** aparecen debajo del tablero de draft, con tipografía ampliada y comparativa de ambos equipos.
+Los informes **Lectura del coach**, **Scouting automático**, **Plan de partida** y **Lectura y ajustes** aparecen apilados, a ancho completo y debajo del tablero y del asistente de recomendaciones, con tipografía ampliada y comparativa de ambos equipos.
 
 La capa visual incorpora animaciones de paneles, selección, sugerencias y modales. Se desactivan/reducen mediante `prefers-reduced-motion` cuando el sistema operativo del usuario solicita movimiento reducido.
+
+## Cambios de la versión 0.8.1
+
+- La aplicación muestra el número de versión en la sala de torneo para confirmar que el despliegue nuevo está activo.
+- Cada pestaña Game muestra por separado el progreso de picks y bans (por ejemplo, `10/10 PICKS · 5/10 BANS`).
+- El contador `BANS REGISTRADOS EN GAME N` refleja inmediatamente los vetos del Game seleccionado.
+- Los picks de games finalizados aparecen como `FEARLESS LOCKS` con el retrato y el game de origen. Los bans manuales no se mezclan con esos bloqueos.
+- El snapshot del Game activo se guarda antes de renderizar contadores y pestañas, evitando que el progreso de bans aparezca desfasado.
+- El guardado por Game y el cierre Fearless se realizan mediante funciones de serie testeables; cada Game conserva sus propios bans, mientras los diez picks quedan retirados para los siguientes games.
+- Los cuatro informes del coach se muestran en una sola columna de ancho completo, siempre debajo del Draft Board y Pick Coach.
+- Se actualizó el service worker a `v0.8.1` para eliminar la caché estática anterior y se reforzó la presentación de informes.
+
+### Actualizar una instalación existente
+
+Si el proyecto ya está conectado a GitHub y Vercel, **no crees otro proyecto ni otro Blob**. Reemplaza el contenido del repositorio existente con los archivos de esta versión, conserva el mismo proyecto de Vercel y realiza un commit/push a la rama conectada (normalmente `main`). No cambian `APP_PASSWORD`, `SESSION_SECRET`, el nombre/ruta del documento Blob ni las API de persistencia. Después del despliegue, recarga la página con `Cmd + Shift + R`. En la sala debe aparecer la etiqueta `DRAFT LAB v0.8.1`.
 
 ## Despliegue en Vercel
 
@@ -185,14 +208,17 @@ voidkings-draft-lab/
 ```
 
 
-## Versión 0.7.0 — Coach visual y recomendaciones explicables
+## Novedades v0.7.0 (incluidas en v0.8.1)
 
-- Tablero de picks con splash art de campeones y retrato cuadrado de respaldo.
-- Pick Coach muestra el tier real configurado (CORE, ALT 1 o ALT 2), distingue el mejor ajuste contextual y explica sinergias, counters, frontline, daño y respuestas al rival.
-- Los puntos de ajuste son heurísticos y no representan probabilidad de victoria.
-- Las composiciones sugeridas muestran retratos y rol de cada campeón.
-- El scouting de líneas muestra retratos, evidencia (counter registrado o perfil estratégico) y nivel de confianza. Las tendencias derivadas del perfil no se presentan como prioridad confirmada.
-- Se amplió el panel comparativo y se mejoró la lectura responsive de los informes.
+- Los informes del coach se muestran debajo del tablero y del asistente en ancho completo.
+- Cada game tiene cinco bans manuales por equipo, independientes de los demás games.
+- Los picks de games cerrados aparecen como bloqueos Fearless visibles y no pueden volver a seleccionarse durante la serie.
+- Cuando un draft llega a 10/10 picks, se puede cerrar manualmente o al entrar al siguiente game.
+- El service worker y las cabeceras de Vercel fuerzan la actualización del HTML y del bundle tras cada despliegue.
 
-### Actualización
-Reemplaza los archivos del repositorio con esta versión y realiza un nuevo push a `main`. No se modificaron la clave de estado local, las rutas `/api`, el esquema de Vercel Blob ni las variables de entorno. Las imágenes splash se cargan desde Data Dragon; requieren conexión a Internet, mientras que la app y su persistencia siguen alojadas en Vercel.
+
+## Ajustes visuales de la versión 0.8.1
+
+- El Draft Board ahora refleja visualmente ambos lados alrededor del separador VS: el retrato de VK permanece en el borde exterior izquierdo y el del rival pasa al borde exterior derecho; los nombres quedan orientados hacia el centro.
+- La sección **Prioridad potencial por línea** incorpora los retratos de ambos campeones y mantiene la misma alineación espejada.
+- Se conservan el orden de picks, los datos Fearless, autenticación, Vercel Functions y Vercel Blob.
