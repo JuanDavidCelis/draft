@@ -136,7 +136,7 @@ export function analyzeLanePriority(ownRolePicks, enemyRolePicks, championMap, c
     const ownChampion = championMap.get(ownId);
     const enemyChampion = championMap.get(enemyId);
     if (!ownChampion || !enemyChampion) {
-      return { role, label: ROLE_PRIORITY_LABELS[role], ownChampion: ownChampion?.name || null, enemyChampion: enemyChampion?.name || null, priority: 'Pendiente', score: 0, explanation: 'Falta uno de los dos picks para comparar este emparejamiento.' };
+      return { role, label: ROLE_PRIORITY_LABELS[role], ownChampionId: ownId || null, enemyChampionId: enemyId || null, ownChampion: ownChampion?.name || null, enemyChampion: enemyChampion?.name || null, priority: 'Pendiente', evidence: 'Faltan selecciones', confidence: 'Baja', score: 0, explanation: 'Falta uno de los dos picks para comparar este emparejamiento.' };
     }
     const ownCounter = pairValue(counterPairs, ownId, enemyId);
     const enemyCounter = pairValue(counterPairs, enemyId, ownId);
@@ -152,13 +152,18 @@ export function analyzeLanePriority(ownRolePicks, enemyRolePicks, championMap, c
       if (enemyAdc && enemySupport && enemyId === enemyAdc) score -= pairValue(synergyPairs, enemyAdc, enemySupport) * 0.18;
       if (enemyAdc && enemySupport && enemyId === enemySupport) score -= pairValue(synergyPairs, enemyAdc, enemySupport) * 0.18;
     }
-    const priority = score >= 1.8 ? 'Prioridad VK' : score <= -1.8 ? 'Prioridad rival' : 'Emparejamiento disputado';
-    let explanation = 'No hay un counter directo suficientemente fuerte en los datos; la prioridad dependerá de oleadas, ejecución, visión y apoyo del jungla.';
-    if (ownCounter > enemyCounter) explanation = `${ownChampion.name} tiene una respuesta favorable registrada contra ${enemyChampion.name}. Debe convertirla en control de oleada y rotación.`;
-    else if (enemyCounter > ownCounter) explanation = `${enemyChampion.name} tiene una respuesta favorable registrada contra ${ownChampion.name}. Evita intercambios repetidos sin apoyo.`;
-    else if (score > 0.7) explanation = `El perfil de ${ownChampion.name} aporta más presión potencial en esta posición; confirma la prioridad controlando la oleada.`;
-    else if (score < -0.7) explanation = `El perfil de ${enemyChampion.name} aporta más presión potencial; evita ceder tempo y pide cobertura si la oleada queda expuesta.`;
-    return { role, label: ROLE_PRIORITY_LABELS[role], ownChampion: ownChampion.name, enemyChampion: enemyChampion.name, priority, score: Number(score.toFixed(2)), ownCounter, enemyCounter, explanation };
+    const hasDirectEvidence = ownCounter > 0 || enemyCounter > 0;
+    const priority = hasDirectEvidence
+      ? (score >= 1.8 ? 'Prioridad VK' : score <= -1.8 ? 'Prioridad rival' : 'Emparejamiento disputado')
+      : (score >= 1.8 ? 'Tendencia VK' : score <= -1.8 ? 'Tendencia rival' : 'Emparejamiento disputado');
+    const evidence = hasDirectEvidence ? 'Counter registrado' : 'Perfil estratégico';
+    const confidence = hasDirectEvidence ? 'Media' : 'Baja';
+    let explanation = 'No hay un counter directo suficientemente fuerte registrado. La prioridad dependerá de oleadas, ejecución, visión y cobertura del jungla.';
+    if (ownCounter > enemyCounter) explanation = `${ownChampion.name} tiene una respuesta favorable registrada contra ${enemyChampion.name}. Es una oportunidad de matchup; conviértela en control de oleada y rotación, no en una prioridad automática.`;
+    else if (enemyCounter > ownCounter) explanation = `${enemyChampion.name} tiene una respuesta favorable registrada contra ${ownChampion.name}. Evita intercambios repetidos sin apoyo y busca una oleada segura.`;
+    else if (score > 0.7) explanation = `El perfil de ${ownChampion.name} aporta más presión potencial en esta posición. Es una tendencia del perfil, no una prueba de prioridad de oleada: confírmala con los primeros niveles.`;
+    else if (score < -0.7) explanation = `El perfil de ${enemyChampion.name} aporta más presión potencial. Protege la oleada y coordina cobertura del jungla antes de ceder tempo.`;
+    return { role, label: ROLE_PRIORITY_LABELS[role], ownChampionId: ownId, enemyChampionId: enemyId, ownChampion: ownChampion.name, enemyChampion: enemyChampion.name, priority, evidence, confidence, score: Number(score.toFixed(2)), ownCounter, enemyCounter, explanation };
   });
 }
 

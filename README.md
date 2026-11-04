@@ -183,3 +183,16 @@ voidkings-draft-lab/
 ├── package.json
 └── README.md
 ```
+
+
+## Versión 0.7.0 — Coach visual y recomendaciones explicables
+
+- Tablero de picks con splash art de campeones y retrato cuadrado de respaldo.
+- Pick Coach muestra el tier real configurado (CORE, ALT 1 o ALT 2), distingue el mejor ajuste contextual y explica sinergias, counters, frontline, daño y respuestas al rival.
+- Los puntos de ajuste son heurísticos y no representan probabilidad de victoria.
+- Las composiciones sugeridas muestran retratos y rol de cada campeón.
+- El scouting de líneas muestra retratos, evidencia (counter registrado o perfil estratégico) y nivel de confianza. Las tendencias derivadas del perfil no se presentan como prioridad confirmada.
+- Se amplió el panel comparativo y se mejoró la lectura responsive de los informes.
+
+### Actualización
+Reemplaza los archivos del repositorio con esta versión y realiza un nuevo push a `main`. No se modificaron la clave de estado local, las rutas `/api`, el esquema de Vercel Blob ni las variables de entorno. Las imágenes splash se cargan desde Data Dragon; requieren conexión a Internet, mientras que la app y su persistencia siguen alojadas en Vercel.
