@@ -596,3 +596,14 @@
   #view-draft .lane-team-chip .lane-champion-placeholder{width:26px;height:26px;flex-basis:26px}
   #view-draft .lane-versus{min-width:20px;font-size:9px}
 }
+
+
+/* v0.8.2 — specific coach advice for each lane matchup */
+.lane-priority-card .lane-matchup-explanation{margin:8px 0 0;color:#98a9bf;font-size:12px;line-height:1.55}
+.lane-advice{margin-top:10px;padding:11px 12px;border:1px solid #34445d;border-left:3px solid #8f7be2;border-radius:6px;background:linear-gradient(110deg,#171f32,#121b2a)}
+.lane-advice>span{display:block;margin-bottom:5px;color:#b8a9ff;font-size:9px;font-weight:900;letter-spacing:1.15px}
+.lane-advice>p{margin:0;color:#d2dced;font-size:12px;line-height:1.65}
+.lane-priority-card.vk-edge .lane-advice{border-left-color:#58a6ed}
+.lane-priority-card.enemy-edge .lane-advice{border-left-color:#e77c8b}
+.lane-priority-card.pending-edge .lane-advice{border-left-color:#74839a}
+@media(max-width:700px){.lane-advice{padding:10px}.lane-advice>p{font-size:12px;line-height:1.6}}

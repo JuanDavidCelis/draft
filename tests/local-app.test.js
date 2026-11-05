@@ -169,7 +169,7 @@ test('el service worker invalida la versión anterior para que Vercel publique e
   const sw = read('sw.js');
   const app = read('assets/js/app.js');
   const vercel = read('vercel.json');
-  assert.match(sw, /voidkings-draft-lab-v0-8-1/);
+  assert.match(sw, /voidkings-draft-lab-v0-8-2/);
   assert.match(sw, /cache: 'reload'/);
   assert.match(sw, /self\.skipWaiting\(\)/);
   assert.match(app, /updateViaCache: 'none'/);
@@ -177,15 +177,15 @@ test('el service worker invalida la versión anterior para que Vercel publique e
 });
 
 
-test('v0.8.1 muestra el build, el contador de bans del Game actual y los bloqueos Fearless', () => {
+test('v0.8.2 muestra el build, el contador de bans del Game actual y los bloqueos Fearless', () => {
   const html = read('index.html');
   const app = read('assets/js/app.js');
   const sw = read('sw.js');
-  assert.match(html, /DRAFT LAB v0\.8\.1/);
+  assert.match(html, /DRAFT LAB v0\.8\.2/);
   assert.match(html, /id="game-ban-count"/);
   assert.match(app, /FEARLESS LOCKS · GAME/);
   assert.match(app, /BANS REGISTRADOS EN GAME/);
-  assert.match(sw, /voidkings-draft-lab-v0-8-1/);
+  assert.match(sw, /voidkings-draft-lab-v0-8-2/);
 });
 
 test('los cuatro informes se apilan en ancho completo bajo el Draft Board y Pick Coach', () => {

@@ -1,4 +1,14 @@
-# VoidKings Draft Lab v0.8.1
+# VoidKings Draft Lab v0.8.2
+
+## Consejos específicos por línea v0.8.2
+
+- Añadida la función pura `laneAdvice(role, ownCounter, enemyCounter, ownChampion, enemyChampion, score)` en `assets/js/draft-intel.js`.
+- `analyzeLanePriority` ahora devuelve `advice` en todas las líneas, incluidas las que todavía esperan uno de los dos picks.
+- Los consejos combinan el counter direccional registrado y el score total del matchup. Cuando no existe counter directo, el score del perfil de línea decide si el contexto es favorable, desfavorable o disputado.
+- Añadidas instrucciones específicas para Barón, Jungla, Mid, ADC y Soporte, incluyendo presión/solo kill con visión, invasiones condicionadas por prioridad de líneas, rotaciones por waveclear, posicionamiento ante dive y protección del carry.
+- `renderMatchupAnalysis` presenta el consejo debajo de la explicación del emparejamiento en cada tarjeta de prioridad de línea.
+- Añadido estilo visual destacado y responsive para el bloque «CONSEJO DE JUEGO».
+
 
 ## Ajustes visuales v0.8.1
 
@@ -6,9 +16,9 @@
 - La sección **Prioridad potencial por línea** muestra el retrato y el nombre de cada campeón, con la misma alineación espejada alrededor de VS.
 - Se mantiene intacta la lógica de draft, Fearless, la autenticación y Vercel Blob.
 
-# VOIDKINGS DRAFT LAB
+## Descripción del proyecto
 
-Aplicación privada de draft competitivo para **VoidKings · VK SinADC**. Versión **0.8.1**.
+Aplicación privada de draft competitivo para **VoidKings · VK SinADC**. Versión **0.8.2**.
 
 La identidad visual y los textos de la aplicación corresponden a **VoidKings** y al equipo **VK SinADC**. Esta actualización conserva los identificadores internos del Blob y de la sesión de la versión anterior para no perder los drafts, configuraciones ni la sesión ya existentes. Esos identificadores son detalles técnicos de compatibilidad y no aparecen en la interfaz.
 
@@ -24,7 +34,11 @@ La aplicación se ejecuta en Vercel. No utiliza Supabase, Firebase, servicios ex
 
 El estado persistido incluye picks, bans, orden de slots, lado, formato, Champion Pool y composiciones personalizadas. El documento se limita a 2 MB.
 
-## Funciones de la versión 0.8.1
+## Funciones de la versión 0.8.2
+
+- **Consejos tácticos por línea:** `laneAdvice` genera recomendaciones puras y específicas para Barón, Jungla, Mid, ADC y Soporte.
+- Cada tarjeta de **Prioridad potencial por línea** muestra el campo `advice` debajo del texto del matchup, con un bloque visual diferenciado.
+- El contexto de la recomendación compara `ownCounter` con `enemyCounter`; si no existe un counter directo, utiliza el score de matchup calculado con tags y estadísticas de ambos perfiles.
 
 - First Pick / Last Pick y formato BO1, BO3 o BO5.
 - Gestión de series Fearless Draft: BO1 crea Game 1; BO3 crea Game 1–3; BO5 crea Game 1–5.
@@ -62,7 +76,7 @@ El panel **Pick Coach** calcula el siguiente turno de VK SinADC usando el orden 
 
 Las sugerencias se ordenan por puntuación heurística: no son porcentajes de victoria, predicciones de resultado ni una tier list oficial. El motor usa los perfiles editables del catálogo, relaciones de sinergia/counter mantenidas en `assets/js/catalog.js`, picks enemigos y el contexto de ajustes del parche indicado en el código. Los perfiles con etiquetas estratégicas pendientes aportan métricas neutrales hasta que se completen.
 
-El panel **Matchup Analysis** compara las herramientas de los dos equipos y propone ajustes por fase. Su lectura se marca como parcial mientras falten selecciones. La prioridad por línea se estima con counters registrados y perfiles del catálogo, y no garantiza prioridad de oleada. El índice de draft aparece únicamente cuando ambos equipos tienen cinco picks; es una distribución heurística de ventaja composicional, nunca un porcentaje real de win rate ni una predicción del resultado. Las sugerencias sirven como apoyo al coach y deben validarse con scrims y el conocimiento de los jugadores.
+El panel **Matchup Analysis** compara las herramientas de los dos equipos y propone ajustes por fase. Su lectura se marca como parcial mientras falten selecciones. La prioridad por línea se estima con counters registrados y perfiles del catálogo, y no garantiza prioridad de oleada. El índice de draft aparece únicamente cuando ambos equipos tienen cinco picks; es una distribución heurística de ventaja composicional, nunca un porcentaje real de win rate ni una predicción del resultado. Las sugerencias sirven como apoyo al coach y deben validarse con scrims y el conocimiento de los jugadores. En v0.8.2, cada tarjeta de línea añade un consejo táctico específico según el counter directo, el score y los tags/estadísticas de ambos campeones. La recomendación es heurística, no una garantía de ventaja.
 
 Los retratos se cargan desde Riot Data Dragon `16.21.1`. Por tanto, la aplicación, la API, el estado privado y las recomendaciones se ejecutan/alojan en Vercel; únicamente las imágenes de campeón se solicitan a la CDN oficial de Riot. Si una imagen no existe o la CDN no responde, se muestran iniciales como alternativa.
 
@@ -70,7 +84,7 @@ Los informes **Lectura del coach**, **Scouting automático**, **Plan de partida*
 
 La capa visual incorpora animaciones de paneles, selección, sugerencias y modales. Se desactivan/reducen mediante `prefers-reduced-motion` cuando el sistema operativo del usuario solicita movimiento reducido.
 
-## Cambios de la versión 0.8.1
+## Cambios de la versión 0.8.1 (histórico)
 
 - La aplicación muestra el número de versión en la sala de torneo para confirmar que el despliegue nuevo está activo.
 - Cada pestaña Game muestra por separado el progreso de picks y bans (por ejemplo, `10/10 PICKS · 5/10 BANS`).
@@ -79,11 +93,11 @@ La capa visual incorpora animaciones de paneles, selección, sugerencias y modal
 - El snapshot del Game activo se guarda antes de renderizar contadores y pestañas, evitando que el progreso de bans aparezca desfasado.
 - El guardado por Game y el cierre Fearless se realizan mediante funciones de serie testeables; cada Game conserva sus propios bans, mientras los diez picks quedan retirados para los siguientes games.
 - Los cuatro informes del coach se muestran en una sola columna de ancho completo, siempre debajo del Draft Board y Pick Coach.
-- Se actualizó el service worker a `v0.8.1` para eliminar la caché estática anterior y se reforzó la presentación de informes.
+- En v0.8.1 se actualizó el service worker para eliminar la caché estática anterior y se reforzó la presentación de informes; la versión 0.8.2 incrementa nuevamente la caché.
 
 ### Actualizar una instalación existente
 
-Si el proyecto ya está conectado a GitHub y Vercel, **no crees otro proyecto ni otro Blob**. Reemplaza el contenido del repositorio existente con los archivos de esta versión, conserva el mismo proyecto de Vercel y realiza un commit/push a la rama conectada (normalmente `main`). No cambian `APP_PASSWORD`, `SESSION_SECRET`, el nombre/ruta del documento Blob ni las API de persistencia. Después del despliegue, recarga la página con `Cmd + Shift + R`. En la sala debe aparecer la etiqueta `DRAFT LAB v0.8.1`.
+Si el proyecto ya está conectado a GitHub y Vercel, **no crees otro proyecto ni otro Blob**. Reemplaza el contenido del repositorio existente con los archivos de esta versión, conserva el mismo proyecto de Vercel y realiza un commit/push a la rama conectada (normalmente `main`). No cambian `APP_PASSWORD`, `SESSION_SECRET`, el nombre/ruta del documento Blob ni las API de persistencia. Después del despliegue, recarga la página con `Cmd + Shift + R`. En la sala debe aparecer la etiqueta `DRAFT LAB v0.8.2`.
 
 ## Despliegue en Vercel
 
@@ -208,7 +222,7 @@ voidkings-draft-lab/
 ```
 
 
-## Novedades v0.7.0 (incluidas en v0.8.1)
+## Novedades v0.7.0 (incluidas en v0.8.2)
 
 - Los informes del coach se muestran debajo del tablero y del asistente en ancho completo.
 - Cada game tiene cinco bans manuales por equipo, independientes de los demás games.

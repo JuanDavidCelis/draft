@@ -985,7 +985,7 @@ function renderMatchupAnalysis() {
     const enemyLaneChampion = getChampion(state.picks[enemy]?.[lane.role]);
     const ownAvatar = ownLaneChampion ? championAvatar(ownLaneChampion, 'tiny') : '<span class="lane-champion-placeholder">?</span>';
     const enemyAvatar = enemyLaneChampion ? championAvatar(enemyLaneChampion, 'tiny') : '<span class="lane-champion-placeholder">?</span>';
-    return `<article class="lane-priority-card ${tone}"><div class="lane-card-head"><span>${escapeHtml(lane.label)}</span><b>${escapeHtml(lane.priority)}</b></div><div class="lane-matchup"><div class="lane-team-chip own">${ownAvatar}<strong>${escapeHtml(lane.ownChampion || 'Pendiente')}</strong></div><span class="lane-versus">VS</span><div class="lane-team-chip enemy"><strong>${escapeHtml(lane.enemyChampion || 'Pendiente')}</strong>${enemyAvatar}</div></div><p>${escapeHtml(lane.explanation)}</p></article>`;
+    return `<article class="lane-priority-card ${tone}"><div class="lane-card-head"><span>${escapeHtml(lane.label)}</span><b>${escapeHtml(lane.priority)}</b></div><div class="lane-matchup"><div class="lane-team-chip own">${ownAvatar}<strong>${escapeHtml(lane.ownChampion || 'Pendiente')}</strong></div><span class="lane-versus">VS</span><div class="lane-team-chip enemy"><strong>${escapeHtml(lane.enemyChampion || 'Pendiente')}</strong>${enemyAvatar}</div></div><p class="lane-matchup-explanation">${escapeHtml(lane.explanation)}</p><div class="lane-advice"><span>CONSEJO DE JUEGO</span><p>${escapeHtml(lane.advice || 'Completa ambos picks para recibir un consejo específico.')}</p></div></article>`;
   }).join('');
   const direct = report.edges.map(edge => `<div class="matchup-edge">${championAvatar(getChampion(edge.counter),'tiny')}<strong>${escapeHtml(championName(edge.counter))}</strong><span>presiona a</span>${championAvatar(getChampion(edge.target),'tiny')}<strong>${escapeHtml(championName(edge.target))}</strong><b>+</b></div>`).join('');
   const focus = report.focus.length ? `<div class="focus-line"><span>FOCO RIVAL</span><strong>${report.focus.map(escapeHtml).join(' → ')}</strong></div>` : '';
@@ -1086,10 +1086,6 @@ function selectChampion(championId) {
     if (allBanIds().includes(championId)) return notify('Ese campeón ya está baneado.');
     state.bans[team][index] = championId;
   }
-  closePicker();
-  renderDraft();
-  notify(`${championName(championId)} ${type === 'pick' ? 'seleccionado' : 'baneado'}.`);
-}
   closePicker();
   renderDraft();
   notify(`${championName(championId)} ${type === 'pick' ? 'seleccionado' : 'baneado'}.`);

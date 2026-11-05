@@ -1,3 +1,13 @@
+## 0.8.2 — consejos tácticos por línea
+
+- Añadida la función pura `laneAdvice` en `assets/js/draft-intel.js`.
+- `analyzeLanePriority` incorpora un campo `advice` para cada línea, también cuando falta algún pick.
+- El consejo clasifica el contexto por counter directo (`ownCounter` vs `enemyCounter`) y score del matchup cuando no existe un counter directo.
+- Se agregan recomendaciones situacionales para Barón, Jungla, Mid, ADC y Soporte, considerando tags y estadísticas de ambos campeones.
+- Cada `lane-priority-card` muestra «CONSEJO DE JUEGO» debajo de la explicación del matchup.
+- Se actualiza la caché PWA a v0.8.2 para invalidar los recursos estáticos anteriores.
+- Se elimina un bloque duplicado fuera de `selectChampion` que impedía analizar `app.js` con el parser de Node.
+
 ## 0.8.1 — alineación espejada del Draft Board y prioridad por línea
 - El retrato de cada pick del lado rojo se coloca en el borde exterior derecho; nombre centrado hacia VS, como espejo del lado azul.
 - Prioridad potencial por línea ahora muestra retrato y nombre en ambos lados, con VS al centro.

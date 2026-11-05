@@ -32,7 +32,7 @@ test('el cambio de marca conserva compatibilidad con respaldos anteriores', () =
 
 test('la nueva PWA usa caché VoidKings y limpia la caché previa sin afectar datos privados', () => {
   const sw = read('sw.js');
-  assert.match(sw, /voidkings-draft-lab-v0-8-1/);
+  assert.match(sw, /voidkings-draft-lab-v0-8-2/);
   assert.match(sw, /voidkings-draft-lab-/); // elimina cachés de builds previos
   assert.match(sw, /vhaeldron-draft-lab-/); // cache name migration only
   assert.match(sw, /requestUrl\.pathname\.startsWith\('\/api\/'\)/);

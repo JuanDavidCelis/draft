@@ -128,6 +128,105 @@ function laneProfileValue(champion, role) {
   return 0;
 }
 
+const championHasTag = (champion, ...tags) => (champion?.tags || []).some(tag => tags.includes(tag));
+const championHasStat = (champion, stat, threshold = 2) => Number(champion?.[stat] || 0) >= threshold;
+
+/**
+ * Pure, role-specific lane coaching. Counter values are directional weights from
+ * the champion matchup table; score also includes the champions' lane profiles.
+ * This is tactical guidance, not a prediction of lane outcome.
+ */
+export function laneAdvice(role, ownCounter, enemyCounter, ownChampion, enemyChampion, score = 0) {
+  if (!ownChampion || !enemyChampion) {
+    return 'Selecciona ambos campeones de la línea para recibir un consejo de juego específico.';
+  }
+
+  const ownValue = Number(ownCounter) || 0;
+  const enemyValue = Number(enemyCounter) || 0;
+  const laneScore = Number(score) || 0;
+  let matchup = 'disputed';
+
+  // The lane score combines direct counter weights and both champion profiles.
+  // Use a strong total score first; for closer matchups, keep the directional
+  // counter result only when it agrees with the sign of the overall score.
+  const counterDelta = ownValue - enemyValue;
+  if (laneScore >= 1.8) matchup = 'favorable';
+  else if (laneScore <= -1.8) matchup = 'unfavorable';
+  else if (counterDelta > 0 && laneScore >= 0) matchup = 'favorable';
+  else if (counterDelta < 0 && laneScore <= 0) matchup = 'unfavorable';
+
+  const context = matchup === 'favorable'
+    ? 'Counter favorable: prioriza presionar, fuerza intercambios cortos y convierte en ventaja de CS/objetivos.'
+    : matchup === 'unfavorable'
+      ? 'Counter desfavorable: juega defensivo, farmea safe y pide cobertura del jungla para evitar ganks.'
+      : 'Emparejamiento disputado: controla la oleada con waveclear, no regales intercambios gratuitos y espera a que el rival cometa errores.';
+
+  const own = ownChampion;
+  const enemy = enemyChampion;
+  const advice = [];
+
+  if (role === 'baron') {
+    if (matchup === 'favorable') advice.push('Presiona la oleada y busca solo kill únicamente con visión del río y una ventana clara de habilidades; transforma la ventaja en placas o prioridad de Heraldo.');
+    else if (matchup === 'unfavorable') advice.push('Prioriza last hits y experiencia, evita extenderte por la oleada y coordina con tu jungla antes de buscar un intercambio largo.');
+    else advice.push('Si no tienes ventaja clara, farmea safe, conserva vida y espera cobertura del jungla antes de comprometerte; usa el waveclear para crear una ventana de rotación sin perder demasiados súbditos.');
+    if (championHasTag(enemy, 'dive') || championHasStat(enemy, 'dive', 2)) {
+      advice.push('El rival tiene amenaza de dive: conserva HP, guarda tu herramienta defensiva y no te quedes bajo torre con poca vida si el jungla enemigo puede acompañarlo.');
+    }
+    if (championHasTag(enemy, 'poke') || championHasStat(enemy, 'poke', 2)) {
+      advice.push((Number(own.waveclear) > 0)
+        ? 'Contra su poke, limpia la oleada con waveclear desde una posición segura para ganar tempo y evitar intercambios de vida innecesarios.'
+        : 'Contra su poke, evita responder cada hostigamiento; recoge la oleada de forma segura y espera una ventana de ayuda o rotación.');
+    }
+  } else if (role === 'jungle') {
+    if (championHasTag(own, 'early')) advice.push('Tienes perfil de early: busca invadir, asegurar visión profunda y disputar cangrejo o campamentos, pero entra solo cuando tus líneas cercanas puedan moverse primero.');
+    if (championHasTag(enemy, 'scaling') || championHasStat(enemy, 'scaling', 2)) {
+      advice.push('El jungla rival escala: presiona temprano, invade con prioridad de líneas y fuerza respuestas antes de que alcance sus picos de objetos.');
+    }
+    if (championHasTag(enemy, 'engage') || championHasStat(enemy, 'engage', 2)) {
+      advice.push('Si el rival tiene engage, evita mostrarte primero: espera a que gaste su iniciación y entra después o prepara un contraataque sobre su enfriamiento.');
+    }
+    if (championHasTag(own, 'dive') || championHasStat(own, 'dive', 2)) {
+      advice.push('Tu perfil permite dive: identifica al carry sin movilidad, coordina la entrada con tu línea y prioriza carries antes que perseguir tanques.');
+    }
+    if (!advice.length) advice.push('Juega alrededor de la prioridad de mid y las líneas laterales; convierte una ruta de jungla segura en visión y control del siguiente objetivo.');
+  } else if (role === 'mid') {
+    if (championHasStat(own, 'waveclear', 2)) advice.push('Tienes waveclear: limpia primero y rota rápido a río o a una línea lateral; no abandones la oleada antes de asegurar el empuje.');
+    if (championHasTag(enemy, 'engage') || championHasStat(enemy, 'engage', 2)) {
+      advice.push('El rival puede iniciar sobre ti: juega defensivo, conserva movilidad o destello y busca intercambiar cuando haya gastado su engage o control principal.');
+    }
+    if (championHasTag(own, 'poke') || championHasStat(own, 'poke', 2)) {
+      advice.push('Aprovecha tu poke para desgastar antes de Dragón o Barón; llega con la oleada preparada y no gastes habilidades clave sin visión del jungla rival.');
+    }
+    if (!advice.length) advice.push('Prioriza controlar la oleada y mantén comunicación con jungla: rota cuando el rival pierda prioridad o muestre su posición en el mapa.');
+  } else if (role === 'adc') {
+    if (championHasTag(own, 'protect-carry', 'self-peel', 'anti-dive', 'peel') || championHasStat(own, 'peel', 2)) {
+      advice.push('Tu campeón tiene herramientas de peel/protección: juega detrás del soporte y conserva tu recurso defensivo para la primera entrada rival.');
+    }
+    if (championHasTag(enemy, 'dive') || championHasStat(enemy, 'dive', 2)) {
+      advice.push('Contra dive, mantén una ruta de escape junto a una pared o terreno seguro, evita pasillos sin salida y no te separes del soporte al rotar.');
+    }
+    if (championHasTag(enemy, 'scaling') || championHasStat(enemy, 'scaling', 2)) {
+      advice.push('El ADC rival escala: prioriza un farmeo seguro, castiga solo cuando tengas apoyo o ventaja de oleada y evita all-ins de alto riesgo sin necesidad.');
+    }
+    if (!advice.length) advice.push('Mantén una posición desde la que puedas golpear al objetivo más cercano sin exponerte; acompaña las rotaciones después de empujar tu oleada.');
+  } else if (role === 'support') {
+    if (championHasTag(enemy, 'engage') || championHasStat(enemy, 'engage', 2)) {
+      advice.push('El rival tiene engage: protege al carry, juega a su lado y conserva control y habilidades defensivas para detener la entrada; no inicies sin confirmar la posición del jungla.');
+    }
+    if (championHasTag(enemy, 'poke') || championHasStat(enemy, 'poke', 2)) {
+      advice.push('Contra poke, despeja visión con tu equipo y control de río; no entres solo a arbustos ni recibas daño gratuito antes del objetivo.');
+    }
+    if (championHasTag(own, 'peel', 'protect-carry', 'anti-engage') || championHasStat(own, 'peel', 2)) {
+      advice.push('Tienes peel: no lo gastes para iniciar de forma automática; guarda la interrupción o protección para el campeón que salte sobre tu carry.');
+    }
+    if (!advice.length) advice.push('Acompaña al jungla para establecer visión, protege las entradas a río y busca intercambios cuando tu ADC pueda seguir la jugada.');
+  } else {
+    advice.push('Coordina la oleada con tu equipo y juega alrededor de visión, tiempos de habilidades y prioridad del objetivo cercano.');
+  }
+
+  return `${context} ${advice.join(' ')}`;
+}
+
 export function analyzeLanePriority(ownRolePicks, enemyRolePicks, championMap, counterPairs = [], synergyPairs = []) {
   const roles = ['baron', 'jungle', 'mid', 'adc', 'support'];
   return roles.map(role => {
@@ -136,7 +235,18 @@ export function analyzeLanePriority(ownRolePicks, enemyRolePicks, championMap, c
     const ownChampion = championMap.get(ownId);
     const enemyChampion = championMap.get(enemyId);
     if (!ownChampion || !enemyChampion) {
-      return { role, label: ROLE_PRIORITY_LABELS[role], ownChampion: ownChampion?.name || null, enemyChampion: enemyChampion?.name || null, priority: 'Pendiente', score: 0, explanation: 'Falta uno de los dos picks para comparar este emparejamiento.' };
+      return {
+        role,
+        label: ROLE_PRIORITY_LABELS[role],
+        ownChampion: ownChampion?.name || null,
+        enemyChampion: enemyChampion?.name || null,
+        priority: 'Pendiente',
+        score: 0,
+        ownCounter: 0,
+        enemyCounter: 0,
+        explanation: 'Falta uno de los dos picks para comparar este emparejamiento.',
+        advice: laneAdvice(role, 0, 0, ownChampion, enemyChampion, 0),
+      };
     }
     const ownCounter = pairValue(counterPairs, ownId, enemyId);
     const enemyCounter = pairValue(counterPairs, enemyId, ownId);
@@ -158,7 +268,18 @@ export function analyzeLanePriority(ownRolePicks, enemyRolePicks, championMap, c
     else if (enemyCounter > ownCounter) explanation = `${enemyChampion.name} tiene una respuesta favorable registrada contra ${ownChampion.name}. Evita intercambios repetidos sin apoyo.`;
     else if (score > 0.7) explanation = `El perfil de ${ownChampion.name} aporta más presión potencial en esta posición; confirma la prioridad controlando la oleada.`;
     else if (score < -0.7) explanation = `El perfil de ${enemyChampion.name} aporta más presión potencial; evita ceder tempo y pide cobertura si la oleada queda expuesta.`;
-    return { role, label: ROLE_PRIORITY_LABELS[role], ownChampion: ownChampion.name, enemyChampion: enemyChampion.name, priority, score: Number(score.toFixed(2)), ownCounter, enemyCounter, explanation };
+    return {
+      role,
+      label: ROLE_PRIORITY_LABELS[role],
+      ownChampion: ownChampion.name,
+      enemyChampion: enemyChampion.name,
+      priority,
+      score: Number(score.toFixed(2)),
+      ownCounter,
+      enemyCounter,
+      explanation,
+      advice: laneAdvice(role, ownCounter, enemyCounter, ownChampion, enemyChampion, score),
+    };
   });
 }
 

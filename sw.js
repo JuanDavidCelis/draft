@@ -1,4 +1,4 @@
-const CACHE_NAME = 'voidkings-draft-lab-v0-8-1';
+const CACHE_NAME = 'voidkings-draft-lab-v0-8-2';
 const CACHE_PREFIX = 'voidkings-draft-lab-';
 const LEGACY_CACHE_PREFIXES = ['vhaeldron-draft-lab-', 'voidkings-draft-lab-'];
 const APP_SHELL = [
